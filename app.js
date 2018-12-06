@@ -3,6 +3,7 @@ const express = require("express"),
   crypto = require("crypto"),
   fs = require("fs"),
   data = "./data/";
+
 const app = express();
 
 app.use(bodyParser.json());
@@ -12,7 +13,7 @@ let cache = {};
 const getContent = (id, callback) => {
   if (cache[id]) callback(cache[id]);
   else
-    fs.stat(id, (err, stat) => {
+    fs.stat(data + id, (err, stat) => {
       if (err) callback(false);
       else
         fs.readFile(data + id, (err, data) => {
@@ -56,14 +57,14 @@ app.put("*", (req, res) => {
   getContent(res.locals.id, content => {
     if (content) {
       for (let key in req.body) content[key] = req.body[key];
-      fs.writeFile(res.locals.id, JSON.stringify(content), err => {});
+      fs.writeFile(data + res.locals.id, JSON.stringify(content), err => {});
       res.status(200).json(content);
     } else res.status(404).json([]);
   });
 });
 
-app.delete("*", (req, res) => {
-  fs.unlink(res.locals.id, err => {});
+app.delete("*", (_, res) => {
+  fs.unlink(data + res.locals.id, err => {});
   cache[res.locals.id] = null;
   res.status(204).send();
 });
