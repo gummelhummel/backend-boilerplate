@@ -34,7 +34,21 @@ app.use("*", (req, res, next) => {
   next();
 });
 
-app.get("*", (_, res) => {
+app.get("/list", (req, res) => {
+  fs.readdir(data, (err, files) => {
+    res.status(200).json(files);
+  });
+});
+
+app.get("/clear", (req, res) => {
+  cache = {};
+  fs.readdir(data, (err, files) => {
+    files.forEach(file => fs.unlink(data + file, err => {}));
+  });
+  res.status(200).end("");
+});
+
+app.get("*", (req, res) => {
   getContent(res.locals.id, content => {
     if (content) res.status(200).json(content);
     else res.status(404).json([]);
@@ -44,6 +58,10 @@ app.get("*", (_, res) => {
 app.post("*", (req, res) => {
   getContent(res.locals.id, content => {
     if (!content) {
+      req.body._me = {
+        id: res.locals.id,
+        url: req.originalUrl
+      };
       cache[res.locals.id] = req.body;
       fs.writeFile(data + res.locals.id, JSON.stringify(req.body), err => {
         if (err) res.status(409).send();
