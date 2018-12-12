@@ -26,26 +26,34 @@ const getContent = (id, callback) => {
     });
 };
 
+const mkdirp = (currentPosition, path, callback) => {
+  const next = path.shift();
+  fs.mkdir(currentPosition + next, err => {
+    if (!err && path.length > 0)
+      mkdirp(currentPosition + next + "/", path, callback);
+    else callback();
+  });
+};
+
+const saveContent = (path, id, content, callback) => {
+  let folder = path.split("/");
+  folder.shift();
+  folder.pop();
+  mkdirp(data, folder, () => {
+    fs.writeFile(
+      data + path.slice(0, path.lastIndexOf("/")) + "/" + id,
+      JSON.stringify(content),
+      callback
+    );
+  });
+};
+
 app.use("*", (req, res, next) => {
   res.locals.id = crypto
     .createHash("md5")
     .update(req.baseUrl)
     .digest("hex");
   next();
-});
-
-app.get("/list", (req, res) => {
-  fs.readdir(data, (err, files) => {
-    res.status(200).json(files);
-  });
-});
-
-app.get("/clear", (req, res) => {
-  cache = {};
-  fs.readdir(data, (err, files) => {
-    files.forEach(file => fs.unlink(data + file, err => {}));
-  });
-  res.status(200).end("");
 });
 
 app.get("*", (req, res) => {
@@ -63,7 +71,7 @@ app.post("*", (req, res) => {
         url: req.originalUrl
       };
       cache[res.locals.id] = req.body;
-      fs.writeFile(data + res.locals.id, JSON.stringify(req.body), err => {
+      saveContent(req.originalUrl, res.locals.id, req.body, err => {
         if (err) res.status(409).send();
         else res.status(201).json(cache[res.locals.id]);
       });
@@ -72,6 +80,15 @@ app.post("*", (req, res) => {
 });
 
 app.put("*", (req, res) => {
+  getContent(res.locals.id, content => {
+    if (content) {
+      fs.writeFile(data + res.locals.id, JSON.stringify(content), err => {});
+      res.status(200).json(content);
+    } else res.status(404).json([]);
+  });
+});
+
+app.patch("*", (req, res) => {
   getContent(res.locals.id, content => {
     if (content) {
       for (let key in req.body) content[key] = req.body[key];
