@@ -1,78 +1,78 @@
 const express = require("express"),
   bodyParser = require("body-parser"),
   crypto = require("crypto"),
-  fs = require("fs"),
-  data = "./data/";
+  morgan = require("morgan"),
+  fs = require("fs");
 
 const app = express();
 
 app.use(bodyParser.json());
+app.use(morgan("combined"));
 
 let cache = {};
 
-const getContent = (id, callback) => {
+const getContent = (path, id, callback) => {
   if (cache[id]) callback(cache[id]);
   else
-    fs.stat(data + id, (err, stat) => {
+    fs.stat("." + path + id, (err, stat) => {
       if (err) callback(false);
       else
-        fs.readFile(data + id, (err, data) => {
+        fs.readFile("." + path + id, (err, content) => {
           if (err) callback(false);
           else {
-            cache[id] = content = JSON.parse(data);
+            cache[id] = content = JSON.parse(content);
             callback(content);
           }
         });
     });
 };
 
-const mkdirp = (currentPosition, path, callback) => {
-  const next = path.shift();
-  fs.mkdir(currentPosition + next, err => {
-    if (!err && path.length > 0)
-      mkdirp(currentPosition + next + "/", path, callback);
-    else callback();
-  });
-};
-
 const saveContent = (path, id, content, callback) => {
-  let folder = path.split("/");
-  folder.shift();
-  folder.pop();
-  mkdirp(data, folder, () => {
-    fs.writeFile(
-      data + path.slice(0, path.lastIndexOf("/")) + "/" + id,
-      JSON.stringify(content),
-      callback
-    );
+  const mkdirp = (p, t, cb) => {
+    t.push(p.shift());
+    fs.mkdir(t.join("/"), (err) => {
+      if (err) cb(false);
+      if (p.length > 0) mkdirp(p, t, cb);
+      else cb(p);
+    })
+  }
+  mkdirp(path.split("/").filter(Boolean), [], (p) => {
+    if (p)
+      fs.writeFile("." + path + id, JSON.stringify(content), err => {
+        if (err) callback(err);
+        else callback();
+      });
+    else
+      callback(false);
   });
-};
+}
 
 app.use("*", (req, res, next) => {
+  res.locals.path = "/data" + req.originalUrl.slice(0, req.originalUrl.lastIndexOf("/") !== 1 ? req.originalUrl.lastIndexOf("/") + 1 : req.originalUrl.length)
   res.locals.id = crypto
     .createHash("md5")
-    .update(req.baseUrl)
+    .update(req.originalUrl)
     .digest("hex");
   next();
 });
 
 app.get("*", (req, res) => {
-  getContent(res.locals.id, content => {
+  getContent(res.locals.path, res.locals.id, content => {
     if (content) res.status(200).json(content);
     else res.status(404).json([]);
   });
 });
 
 app.post("*", (req, res) => {
-  getContent(res.locals.id, content => {
+  getContent(res.locals.path, res.locals.id, content => {
     if (!content) {
       req.body._me = {
         id: res.locals.id,
-        url: req.originalUrl
+        path: res.locals.path
       };
       cache[res.locals.id] = req.body;
-      saveContent(req.originalUrl, res.locals.id, req.body, err => {
-        if (err) res.status(409).send();
+      saveContent(res.locals.path, res.locals.id, req.body, err => {
+        if (err) res.status(409).send(err);
         else res.status(201).json(cache[res.locals.id]);
       });
     } else res.status(409).send();
@@ -80,26 +80,30 @@ app.post("*", (req, res) => {
 });
 
 app.put("*", (req, res) => {
-  getContent(res.locals.id, content => {
+  getContent(res.locals.path, res.locals.id, content => {
     if (content) {
-      fs.writeFile(data + res.locals.id, JSON.stringify(content), err => {});
-      res.status(200).json(content);
+      req.body._me = {
+        id: res.locals.id,
+        path: res.locals.path
+      };
+      fs.writeFile("." + res.locals.path + res.locals.id, JSON.stringify(req.body), err => { });
+      res.status(200).json(req.body);
     } else res.status(404).json([]);
   });
 });
 
 app.patch("*", (req, res) => {
-  getContent(res.locals.id, content => {
+  getContent(res.locals.path, res.locals.id, content => {
     if (content) {
       for (let key in req.body) content[key] = req.body[key];
-      fs.writeFile(data + res.locals.id, JSON.stringify(content), err => {});
+      fs.writeFile("." + res.locals.path + res.locals.id, JSON.stringify(content), err => { });
       res.status(200).json(content);
     } else res.status(404).json([]);
   });
 });
 
 app.delete("*", (_, res) => {
-  fs.unlink(data + res.locals.id, err => {});
+  fs.unlink("." + res.locals.path + res.locals.id, err => { });
   cache[res.locals.id] = null;
   res.status(204).send();
 });
