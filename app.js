@@ -6,46 +6,33 @@ const express = require("express"),
 
 const app = express();
 
+var allowCrossDomain = function(req, res, next) {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+
+  next();
+}
+
+app.use(allowCrossDomain);
 app.use(bodyParser.json());
 
-let cache = {};
-
-const getContent = (id, callback) => {
-  if (cache[id]) callback(cache[id]);
-  else
-    fs.stat(data + id, (err, stat) => {
-      if (err) callback(false);
-      else
-        fs.readFile(data + id, (err, data) => {
-          if (err) callback(false);
-          else {
-            cache[id] = content = JSON.parse(data);
-            callback(content);
-          }
-        });
-    });
-};
-
-const mkdirp = (currentPosition, path, callback) => {
-  const next = path.shift();
-  fs.mkdir(currentPosition + next, err => {
-    if (!err && path.length > 0)
-      mkdirp(currentPosition + next + "/", path, callback);
-    else callback();
-  });
-};
-
-const saveContent = (path, id, content, callback) => {
-  let folder = path.split("/");
-  folder.shift();
-  folder.pop();
-  mkdirp(data, folder, () => {
-    fs.writeFile(
-      data + path.slice(0, path.lastIndexOf("/")) + "/" + id,
-      JSON.stringify(content),
-      callback
-    );
-  });
+const mkdirp = (path, callback) => {
+  const mkdir_rec = (p, pc, cb) => {
+    if (pc.length > 0) {
+      let np = p.concat(pc.splice(0, 1));
+      fs.stat(np.join("/"), () =>
+        fs.mkdir(np.join("/"), () => mkdir_rec(np, pc, cb))
+      );
+    } else {
+      cb();
+    }
+  };
+  mkdir_rec(
+    [],
+    path.split("/"),
+    callback || (() => console.log("Created path: " + path))
+  );
 };
 
 app.use("*", (req, res, next) => {
@@ -56,11 +43,50 @@ app.use("*", (req, res, next) => {
   next();
 });
 
-app.get("*", (req, res) => {
-  getContent(res.locals.id, content => {
-    if (content) res.status(200).json(content);
-    else res.status(404).json([]);
+const list = (res, path) => {
+  res.end("l" + path);
+};
+
+const fetch = (res, path) => {
+  res.end("f" + path);
+};
+
+app.get('/',(req,res)=>{
+   res.status(200).sendFile("dist/index.html", { root: __dirname });
+})
+
+app.get("/api/data/*", (req, res) => {
+  let path = req.params[0];
+  fs.stat("data/" + path, (e, s) => {
+    if (e) {
+      res.status(404).end();
+    } else {
+      s.isDirectory()
+        ? fs.readdir("data/" + path, (e, fls) => {
+            res
+              .status(200)
+              .send(fls)
+              .end();
+          })
+        : res.sendFile("data/" + path, { root: __dirname });
+    }
   });
+});
+
+app.post("/api/data/*", (req, res) => {
+  let path = req.params[0];
+  if (path[path.length - 1] === "/") {
+    mkdirp("data/" + path, () => res.status(200).end("Created path " + path));
+  } else {
+    fs.writeFile(
+      "data/" + path,
+      JSON.stringify(req.body),
+      { flag: "w" },
+      () => {
+        res.status(200).end();
+      }
+    );
+  }
 });
 
 app.post("*", (req, res) => {
@@ -71,10 +97,15 @@ app.post("*", (req, res) => {
         url: req.originalUrl
       };
       cache[res.locals.id] = req.body;
-      saveContent(req.originalUrl, res.locals.id, req.body, err => {
-        if (err) res.status(409).send();
-        else res.status(201).json(cache[res.locals.id]);
-      });
+      saveContent(
+        req.originalUrl,
+        res.locals.id,
+        JSON.stringify(req.body),
+        err => {
+          if (err) res.status(409).send();
+          else res.status(201).json(cache[res.locals.id]);
+        }
+      );
     } else res.status(409).send();
   });
 });
