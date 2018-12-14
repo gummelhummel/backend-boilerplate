@@ -145,7 +145,11 @@ api.post("*", (req, res) => {
 
 app.post("/api/data/*", (req, res) => {
   let path = req.params[0];
-  if (path[path.length - 1] === "/" || req.body === '') {
+  console.log("body", req.body);
+  if (
+    path[path.length - 1] === "/" ||
+    (req.body && Object.keys(req.body).length === 0)
+  ) {
     mkdirp("data/" + path, () => res.status(200).end("Created path " + path));
   } else {
     fs.writeFile(
