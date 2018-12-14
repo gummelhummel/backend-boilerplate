@@ -17,6 +17,7 @@ const {
   footer,
   header,
   a,
+  label,
   pre,
   button,
   br,
@@ -28,10 +29,9 @@ let path = [];
 let list = [];
 let content = "";
 
-const fetchCurrentPath = () => {
-  m.request({
-    url: `http://localhost:3000/api/data/${path.join("/")}`
-  }).then(r => {
+const fetchPath = (
+  _path = path,
+  cb = r => {
     console.log("r", r);
     if (Array.isArray(r)) {
       list = r;
@@ -40,8 +40,22 @@ const fetchCurrentPath = () => {
       list = [];
       content = r;
     }
-  });
+  }
+) => {
+  m.request({
+    url: `http://localhost:3000/api/data/${(_path || []).join("/")}`,
+    deserialize: function(value) {
+      try {
+        return JSON.parse(value);
+      } catch (e) {
+        return value;
+      }
+    }
+  }).then(cb);
 };
+
+let topmenu = [];
+fetchPath((path = []), r => (topmenu = r));
 
 let newPath = "";
 let newData = "";
@@ -51,7 +65,7 @@ const createPath = () => {
   m.request({
     method: "POST",
     url: `http://localhost:3000/api/data/${[...path, newPath].join("/")}`,
-    data: newData !== "" ? {content: newData} : undefined
+    data: newData !== "" ? { content: newData } : undefined
   });
   newPath = "";
   newData = "";
@@ -60,16 +74,49 @@ const createPath = () => {
 m.mount(document.querySelector("#app"), {
   view(vnode) {
     return [
-      nav(
-        path.map((item, idx) =>
+      header(
+        a.logo.button("Stuff"),
+        topmenu.map(t =>
           a.button(
             {
               onclick: () => {
-                path.splice(idx, path.length - idx);
-                fetchCurrentPath();
+                path = [t];
+                fetchPath();
               }
             },
-            item
+            t
+          )
+        )
+      ),
+
+      nav(
+        label.drawerToggle.persistent({ for: "drawer-control" }),
+        input.drawer.persistent.$drawerControl({ type: "checkbox" }),
+        div(
+          label.drawerClose({ for: "drawer-control" }),
+          m("a[href='#']", "Home")
+        ),
+
+        div.buttonGroup(
+          a.button(
+            {
+              onclick: () => {
+                path = [];
+                fetchPath();
+              }
+            },
+            "/"
+          ),
+          path.map((item, idx) =>
+            a.button(
+              {
+                onclick: () => {
+                  path.splice(idx + 1, path.length - idx);
+                  fetchPath();
+                }
+              },
+              item
+            )
           )
         )
       ),
@@ -82,7 +129,7 @@ m.mount(document.querySelector("#app"), {
                   {
                     onclick: () => {
                       path.push(item);
-                      fetchCurrentPath();
+                      fetchPath();
                     }
                   },
                   item
@@ -118,4 +165,4 @@ m.mount(document.querySelector("#app"), {
   }
 });
 
-fetchCurrentPath();
+fetchPath();

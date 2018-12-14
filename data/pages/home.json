@@ -1,0 +1,11 @@
+{
+    "title":"Home",
+    "content":{
+        "links":[
+            {
+                "text":"This page on github",
+                "href":"https://..."
+            }
+        ]
+    }
+}
