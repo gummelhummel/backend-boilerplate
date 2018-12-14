@@ -60,9 +60,9 @@ const createPath = () => {
 m.mount(document.querySelector("#app"), {
   view(vnode) {
     return [
-      nav(
+      header(
         path.map((item, idx) =>
-          a(
+          a.button(
             {
               onclick: () => {
                 path.splice(idx, path.length - idx);
@@ -89,27 +89,28 @@ m.mount(document.querySelector("#app"), {
                 )
               )
             ),
-            li(
-              input({
-                value: newPath,
-                oninput: m.withAttr("value", v => (newPath = v))
-              }),
-              button(
-                {
-                  onclick: () => {
-                    createPath();
-                  }
-                },
-                "+"
-              ),
-              br(),
-              textarea({
-                value: newData,
-                oninput: m.withAttr("value", v => (newData = v))
-              })
-            )
-          ),
-          pre(JSON.stringify(content, null, 2))
+            content.length === 0
+              ? li(
+                  input({
+                    value: newPath,
+                    oninput: m.withAttr("value", v => (newPath = v))
+                  }),
+                  button(
+                    {
+                      onclick: () => {
+                        createPath();
+                      }
+                    },
+                    "+"
+                  ),
+                  br(),
+                  textarea({
+                    value: newData,
+                    oninput: m.withAttr("value", v => (newData = v))
+                  })
+                )
+              : pre(JSON.stringify(content, null, 2))
+          )
         )
       ),
       footer()
