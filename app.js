@@ -6,6 +6,10 @@ const express = require("express"),
   morgan = require("morgan"),
   fs = require("fs");
 
+let config = {
+  useAllowCrossDomain: false
+};
+
 const app = express();
 let cache = {};
 
@@ -33,24 +37,59 @@ const getContent = (path, id, callback) => {
 const saveContent = (path, id, content, callback) => {
   const mkdirp = (p, t, cb) => {
     t.push(p.shift());
-    fs.mkdir(t.join("/"), (err) => {
+    fs.mkdir(t.join("/"), err => {
       if (p.length > 0) mkdirp(p, t, cb);
       else cb(p);
-    })
-  }
-  mkdirp(path.split("/").filter(Boolean), [], (p) => {
+    });
+  };
+  mkdirp(path.split("/").filter(Boolean), [], p => {
     if (p)
       fs.writeFile("." + path + id, JSON.stringify(content), err => {
         if (err) callback(err);
         else callback();
       });
-    else
-      callback(false);
+    else callback(false);
   });
+};
+
+if (config.useAllowCrossDomain) {
+  var allowCrossDomain = function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE");
+    res.header("Access-Control-Allow-Headers", "Content-Type");
+
+    next();
+  };
+
+  app.use(allowCrossDomain);
 }
+app.use(bodyParser.json());
+
+const mkdirp = (path, callback) => {
+  const mkdir_rec = (p, pc, cb) => {
+    if (pc.length > 0) {
+      let np = p.concat(pc.splice(0, 1));
+      fs.stat(np.join("/"), () =>
+        fs.mkdir(np.join("/"), () => mkdir_rec(np, pc, cb))
+      );
+    } else {
+      cb();
+    }
+  };
+  mkdir_rec(
+    [],
+    path.split("/"),
+    callback || (() => console.log("Created path: " + path))
+  );
+};
 
 api.use("*", (req, res, next) => {
-  res.locals.path = req.originalUrl.slice(0, req.originalUrl.lastIndexOf("/") !== 1 ? req.originalUrl.lastIndexOf("/") + 1 : req.originalUrl.length)
+  res.locals.path = req.originalUrl.slice(
+    0,
+    req.originalUrl.lastIndexOf("/") !== 1
+      ? req.originalUrl.lastIndexOf("/") + 1
+      : req.originalUrl.length
+  );
   res.locals.id = crypto
     .createHash("md5")
     .update(req.originalUrl)
@@ -58,7 +97,29 @@ api.use("*", (req, res, next) => {
   next();
 });
 
-api.get("*", (_, res) => {
+app.get("/", (req, res) => {
+  res.status(200).sendFile("dist/index.html", { root: __dirname });
+});
+
+app.get("/api/data/*", (req, res) => {
+  let path = req.params[0];
+  fs.stat("data/" + path, (e, s) => {
+    if (e) {
+      res.status(404).end();
+    } else {
+      s.isDirectory()
+        ? fs.readdir("data/" + path, (e, fls) => {
+            res
+              .status(200)
+              .send(fls)
+              .end();
+          })
+        : res.sendFile("data/" + path, { root: __dirname });
+    }
+  });
+});
+
+/*api.get("*", (_, res) => {
   getContent(res.locals.path, res.locals.id, content => {
     if (content) res.status(200).json(content);
     else res.status(404).json([]);
@@ -80,6 +141,23 @@ api.post("*", (req, res) => {
     } else res.send(409);
   });
 });
+*/
+
+app.post("/api/data/*", (req, res) => {
+  let path = req.params[0];
+  if (path[path.length - 1] === "/" || req.body === '') {
+    mkdirp("data/" + path, () => res.status(200).end("Created path " + path));
+  } else {
+    fs.writeFile(
+      "data/" + path,
+      JSON.stringify(req.body),
+      { flag: "w" },
+      () => {
+        res.status(200).end();
+      }
+    );
+  }
+});
 
 api.put("*", (req, res) => {
   getContent(res.locals.path, res.locals.id, content => {
@@ -88,7 +166,11 @@ api.put("*", (req, res) => {
         id: res.locals.id,
         path: res.locals.path
       };
-      fs.writeFile("." + res.locals.path + res.locals.id, JSON.stringify(req.body), err => { });
+      fs.writeFile(
+        "." + res.locals.path + res.locals.id,
+        JSON.stringify(req.body),
+        err => {}
+      );
       res.status(200).json(req.body);
     } else res.status(404).json([]);
   });
@@ -98,14 +180,18 @@ api.patch("*", (req, res) => {
   getContent(res.locals.path, res.locals.id, content => {
     if (content) {
       for (let key in req.body) content[key] = req.body[key];
-      fs.writeFile("." + res.locals.path + res.locals.id, JSON.stringify(content), err => { });
+      fs.writeFile(
+        "." + res.locals.path + res.locals.id,
+        JSON.stringify(content),
+        err => {}
+      );
       res.status(200).json(content);
     } else res.status(404).json([]);
   });
 });
 
 api.delete("*", (_, res) => {
-  fs.unlink("." + res.locals.path + res.locals.id, err => { });
+  fs.unlink("." + res.locals.path + res.locals.id, err => {});
   cache[res.locals.id] = null;
   res.status(204).send();
 });

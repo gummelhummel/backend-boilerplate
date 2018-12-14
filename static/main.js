@@ -51,7 +51,7 @@ const createPath = () => {
   m.request({
     method: "POST",
     url: `http://localhost:3000/api/data/${[...path, newPath].join("/")}`,
-    data: newData !== "" ? {content: newData} : undefined
+    data: newData !== "" ? newData : undefined
   });
   newPath = "";
   newData = "";
@@ -60,7 +60,7 @@ const createPath = () => {
 m.mount(document.querySelector("#app"), {
   view(vnode) {
     return [
-      nav(
+      header(
         path.map((item, idx) =>
           a.button(
             {
