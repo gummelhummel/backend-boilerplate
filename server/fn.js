@@ -1,10 +1,11 @@
 const fs = require("fs"),
-  cache = require("./cache");
+  cache = require("./cache"),
+  config = require("../config");
 
 exports.getContent = (path, id, callback) => {
   if (cache.get(id)) callback(cache.get(id));
   else {
-    const file = "." + path + id;
+    const file = config.dataDir + path + id;
     fs.stat(file, (err, stat) => {
       if (err) callback(false);
       else
@@ -29,10 +30,18 @@ exports.saveContent = (path, id, content, callback) => {
   };
   mkdirp(path.split("/").filter(Boolean), [], p => {
     if (p)
-      fs.writeFile("." + path + id, JSON.stringify(content), err => {
+      fs.writeFile(config.dataDir + path + id, JSON.stringify(content), err => {
         if (err) callback(err);
         else callback();
       });
     else callback(false);
   });
+};
+
+exports.me = l => {
+  return {
+    id: l.id,
+    file: l.file,
+    path: l.path
+  };
 };

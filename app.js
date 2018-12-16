@@ -9,7 +9,7 @@ const app = express();
 
 app.use(bodyParser.json());
 app.use(morgan("combined"));
-app.use("/api/data/", api);
+app.use(config.apiPath + "*", api);
 app.use("/", express.static("dist", { redirect: false }));
 app.get("*", (_, res) => {
   res.sendFile(path.resolve("dist/index.html"));

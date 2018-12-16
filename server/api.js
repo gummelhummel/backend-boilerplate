@@ -14,10 +14,17 @@ api.use("*", (req, res, next) => {
       : req.originalUrl.length
   );
 
-  res.locals.id = crypto
-    .createHash("md5")
-    .update(req.originalUrl)
-    .digest("hex");
+  res.locals.file = req.originalUrl
+    .split("\\")
+    .pop()
+    .split("/")
+    .pop();
+
+  res.locals.id =
+    crypto
+      .createHash("md5")
+      .update(req.originalUrl)
+      .digest("hex") + ".json";
 
   if (config.useAllowCrossDomain)
     res.set({
@@ -30,19 +37,25 @@ api.use("*", (req, res, next) => {
 });
 
 api.get("*", (_, res) => {
-  fn.getContent(res.locals.path, res.locals.id, content => {
-    if (content) res.status(200).json(content);
-    else res.status(404).json([]);
-  });
+  if (res.locals.file !== "")
+    fn.getContent(res.locals.path, res.locals.id, content => {
+      if (content) res.status(200).json(content);
+      else res.status(404).json([]);
+    });
+  else
+    fs.readdir(config.dataDir + res.locals.path, (e, f) => {
+      res.status(200).json(
+        f.filter(f => {
+          return f.includes(".json");
+        })
+      );
+    });
 });
 
 api.post("*", (req, res) => {
   fn.getContent(res.locals.path, res.locals.id, content => {
     if (!content) {
-      req.body._me = {
-        id: res.locals.id,
-        path: res.locals.path
-      };
+      req.body._me = fn.me(res.locals);
       cache.set(res.locals.id, req.body);
       fn.saveContent(res.locals.path, res.locals.id, req.body, err => {
         if (err) res.status(409).send(err);
@@ -55,12 +68,9 @@ api.post("*", (req, res) => {
 api.put("*", (req, res) => {
   fn.getContent(res.locals.path, res.locals.id, content => {
     if (content) {
-      req.body._me = {
-        id: res.locals.id,
-        path: res.locals.path
-      };
+      req.body._me = fn.me(res.locals);
       fs.writeFile(
-        "." + res.locals.path + res.locals.id,
+        config.dataDir + res.locals.path + res.locals.id,
         JSON.stringify(req.body),
         err => {}
       );
@@ -75,7 +85,7 @@ api.patch("*", (req, res) => {
     if (content) {
       for (let key in req.body) content[key] = req.body[key];
       fs.writeFile(
-        "." + res.locals.path + res.locals.id,
+        config.dataDir + res.locals.path + res.locals.id,
         JSON.stringify(content),
         err => {}
       );
@@ -86,7 +96,7 @@ api.patch("*", (req, res) => {
 });
 
 api.delete("*", (_, res) => {
-  fs.unlink("." + res.locals.path + res.locals.id, err => {});
+  fs.unlink(config.dataDir + res.locals.path + res.locals.id, err => {});
   cache.set(res.locals.id, null);
   res.status(204).send();
 });
