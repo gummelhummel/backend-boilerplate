@@ -3,7 +3,7 @@ const express = require("express"),
   bodyParser = require("body-parser"),
   morgan = require("morgan"),
   config = require("./config"),
-  api = require("./backend/api");
+  api = require("./server/api");
 
 const app = express();
 
