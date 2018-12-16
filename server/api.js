@@ -39,16 +39,19 @@ api.use("*", (req, res, next) => {
 api.get("*", (_, res) => {
   if (res.locals.file !== "")
     fn.getContent(res.locals.path, res.locals.id, content => {
-      if (content) res.status(200).json(content);
-      else res.status(404).json([]);
+      if (content) res.send(200, content);
+      else res.send(404, {});
     });
   else
-    fs.readdir(config.dataDir + res.locals.path, (e, f) => {
-      res.status(200).json(
-        f.filter(f => {
-          return f.includes(".json");
-        })
-      );
+    fs.readdir(config.dataDir + res.locals.path, (err, f) => {
+      if (err) res.send(500, "Ooouuups");
+      else
+        res.send(
+          200,
+          f.filter(f => {
+            return f.includes(".json");
+          })
+        );
     });
 });
 
@@ -58,8 +61,8 @@ api.post("*", (req, res) => {
       req.body._me = fn.me(res.locals);
       cache.set(res.locals.id, req.body);
       fn.saveContent(res.locals.path, res.locals.id, req.body, err => {
-        if (err) res.status(409).send(err);
-        else res.status(201).json(cache.get(res.locals.id));
+        if (err) res.send(409);
+        res.send(201, cache.get(res.locals.id));
       });
     } else res.send(409);
   });
@@ -72,11 +75,13 @@ api.put("*", (req, res) => {
       fs.writeFile(
         config.dataDir + res.locals.path + res.locals.id,
         JSON.stringify(req.body),
-        err => {}
+        err => {
+          if (err) res.send(500, "Ooouuups");
+          cache.set(res.locals.id, req.body);
+          res.send(200, cache.get(res.locals.id));
+        }
       );
-      cache.set(res.locals.id, req.body);
-      res.status(200).json(cache.get(res.locals.id));
-    } else res.status(404).json([]);
+    } else res.send(404, {});
   });
 });
 
@@ -87,18 +92,22 @@ api.patch("*", (req, res) => {
       fs.writeFile(
         config.dataDir + res.locals.path + res.locals.id,
         JSON.stringify(content),
-        err => {}
+        err => {
+          if (err) res.send(500, "Ooouuups");
+          cache.set(res.locals.id, content);
+          res.send(200, cache.get(res.locals.id));
+        }
       );
-      cache.set(res.locals.id, content);
-      res.status(200).json(cache.get(res.locals.id));
-    } else res.status(404).json([]);
+    } else res.send(404, {});
   });
 });
 
 api.delete("*", (_, res) => {
-  fs.unlink(config.dataDir + res.locals.path + res.locals.id, err => {});
-  cache.set(res.locals.id, null);
-  res.status(204).send();
+  fs.unlink(config.dataDir + res.locals.path + res.locals.id, err => {
+    if (err) res.send(500, "Ooouuups");
+    cache.set(res.locals.id, null);
+    res.send(204);
+  });
 });
 
 module.exports = api;
