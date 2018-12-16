@@ -30,7 +30,7 @@ exports.saveContent = (path, id, content, callback) => {
   };
   mkdirp(path.split("/").filter(Boolean), [], p => {
     if (p)
-      fs.writeFile(config.dataDir + path + id, JSON.stringify(content), err => {
+      fs.writeFile(path + id, JSON.stringify(content), err => {
         if (err) callback(err);
         else callback();
       });

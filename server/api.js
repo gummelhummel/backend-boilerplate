@@ -39,15 +39,14 @@ api.use("*", (req, res, next) => {
 api.get("*", (_, res) => {
   if (res.locals.file !== "")
     fn.getContent(res.locals.path, res.locals.id, content => {
-      if (content) res.send(200, content);
-      else res.send(404, {});
+      if (content) res.status(200).send(content);
+      else res.status(404).send({});
     });
   else
     fs.readdir(config.dataDir + res.locals.path, (err, f) => {
-      if (err) res.send(500, "Ooouuups");
+      if (err) res.status(500).send("Ooouuups");
       else
-        res.send(
-          200,
+        res.status(200).send(
           f.filter(f => {
             return f.includes(".json");
           })
@@ -60,11 +59,18 @@ api.post("*", (req, res) => {
     if (!content) {
       req.body._me = fn.me(res.locals);
       cache.set(res.locals.id, req.body);
-      fn.saveContent(res.locals.path, res.locals.id, req.body, err => {
-        if (err) res.send(409);
-        res.send(201, cache.get(res.locals.id));
-      });
-    } else res.send(409);
+      fn.saveContent(
+        config.dataDir + res.locals.path,
+        res.locals.id,
+        req.body,
+        err => {
+          if (err) {
+            res.status(409).end();
+          }
+          res.status(201).send(cache.get(res.locals.id));
+        }
+      );
+    } else res.status(409).end();
   });
 });
 
@@ -76,12 +82,12 @@ api.put("*", (req, res) => {
         config.dataDir + res.locals.path + res.locals.id,
         JSON.stringify(req.body),
         err => {
-          if (err) res.send(500, "Ooouuups");
+          if (err) res.status(500).send("Ooouuups");
           cache.set(res.locals.id, req.body);
-          res.send(200, cache.get(res.locals.id));
+          res.status(200).send(cache.get(res.locals.id));
         }
       );
-    } else res.send(404, {});
+    } else res.status(404).send({});
   });
 });
 
@@ -93,20 +99,20 @@ api.patch("*", (req, res) => {
         config.dataDir + res.locals.path + res.locals.id,
         JSON.stringify(content),
         err => {
-          if (err) res.send(500, "Ooouuups");
+          if (err) res.status(500).send("Ooouuups");
           cache.set(res.locals.id, content);
-          res.send(200, cache.get(res.locals.id));
+          res.status(200).send(cache.get(res.locals.id));
         }
       );
-    } else res.send(404, {});
+    } else res.status(404).send({});
   });
 });
 
 api.delete("*", (_, res) => {
   fs.unlink(config.dataDir + res.locals.path + res.locals.id, err => {
-    if (err) res.send(500, "Ooouuups");
+    if (err) res.status(500).send("Ooouuups");
     cache.set(res.locals.id, null);
-    res.send(204);
+    res.status(204).end();
   });
 });
 

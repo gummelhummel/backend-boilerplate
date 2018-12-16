@@ -1,7 +1,7 @@
 const config = {
   useAllowCrossDomain: false,
   apiPath: "/api/data/",
-  dataDir: ".",
+  dataDir: "./data",
   port: 3000
 };
 
