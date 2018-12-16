@@ -1,17 +1,7 @@
 # Installation
 
-`
-npm install
-`
+`npm install`
 
-# frontent (parcel)
+# for development
 
-`
-npm start
-`
-
-# backend (nodemon)
-
-`
-npm start:dev
-`
+`npm run start:dev`
