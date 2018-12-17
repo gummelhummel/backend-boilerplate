@@ -44,7 +44,7 @@ api.get("*", (_, res) => {
     });
   else
     fs.readdir(config.dataDir + res.locals.path, (err, f) => {
-      if (err) res.status(500).send("Ooouuups");
+      if (err) res.status(404).send([]);
       else
         res.status(200).send(
           f.filter(f => {
