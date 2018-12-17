@@ -7,6 +7,11 @@ const express = require("express"),
   cache = require("./cache");
 
 api.use("*", (req, res, next) => {
+  const p = parseInt(req.query.page ? req.query.page : 0);
+  const s = parseInt(req.query.size ? req.query.size : 10);
+  res.locals.from = p * s;
+  res.locals.to = p * s + s;
+
   res.locals.path = req.originalUrl.slice(
     0,
     req.originalUrl.lastIndexOf("/") !== 1
@@ -14,17 +19,17 @@ api.use("*", (req, res, next) => {
       : req.originalUrl.length
   );
 
-  res.locals.file = req.originalUrl
+  res.locals.id = req.originalUrl
+    .slice(
+      0,
+      req.originalUrl.indexOf("?") !== -1
+        ? req.originalUrl.indexOf("?")
+        : req.originalUrl.length
+    )
     .split("\\")
     .pop()
     .split("/")
     .pop();
-
-  res.locals.id =
-    crypto
-      .createHash("md5")
-      .update(req.originalUrl)
-      .digest("hex") + ".json";
 
   if (config.useAllowCrossDomain)
     res.set({
@@ -37,7 +42,7 @@ api.use("*", (req, res, next) => {
 });
 
 api.get("*", (_, res) => {
-  if (res.locals.file !== "")
+  if (res.locals.id !== "")
     fn.getContent(res.locals.path, res.locals.id, content => {
       if (content) res.status(200).send(content);
       else res.status(404).send({});
@@ -45,16 +50,15 @@ api.get("*", (_, res) => {
   else
     fs.readdir(config.dataDir + res.locals.path, (err, f) => {
       if (err) res.status(404).send([]);
-      else
-        res.status(200).send(
-          f.filter(f => {
-            return f.includes(".json");
-          })
-        );
+      else res.json(f.slice(res.locals.from, res.locals.to));
     });
 });
 
 api.post("*", (req, res) => {
+  res.locals.id =
+    res.locals.id === ""
+      ? crypto.randomBytes(16).toString("hex")
+      : res.locals.id;
   fn.getContent(res.locals.path, res.locals.id, content => {
     if (!content) {
       req.body._me = fn.me(res.locals);
