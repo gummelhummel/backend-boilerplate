@@ -1,7 +1,7 @@
 import m from "mithril";
 import tagl from "tagl-mithril";
-import { text } from "body-parser";
-import { createRequireFromPath } from "module";
+
+import login from './login-mask';
 
 const {
   div,
@@ -160,7 +160,8 @@ m.mount(document.querySelector("#app"), {
           )
         )
       ),
-      footer()
+      m(login),
+      footer(p('© by Fabi & Andi'))
     ];
   }
 });

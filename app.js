@@ -119,30 +119,6 @@ app.get("/api/data/*", (req, res) => {
   });
 });
 
-/*api.get("*", (_, res) => {
-  getContent(res.locals.path, res.locals.id, content => {
-    if (content) res.status(200).json(content);
-    else res.status(404).json([]);
-  });
-});
-
-api.post("*", (req, res) => {
-  getContent(res.locals.path, res.locals.id, content => {
-    if (!content) {
-      req.body._me = {
-        id: res.locals.id,
-        path: res.locals.path
-      };
-      cache[res.locals.id] = req.body;
-      saveContent(res.locals.path, res.locals.id, req.body, err => {
-        if (err) res.status(409).send(err);
-        else res.status(201).json(cache[res.locals.id]);
-      });
-    } else res.send(409);
-  });
-});
-*/
-
 app.post("/api/data/*", (req, res) => {
   let path = req.params[0];
   console.log("body", req.body);
@@ -202,6 +178,9 @@ api.delete("*", (_, res) => {
 
 app.use("/api/data/", api);
 app.use("/", express.static("dist", { redirect: false }));
+
+app.use(require('./user-routes'));
+
 app.get("*", (req, res, next) => {
   res.sendFile(path.resolve("dist/index.html"));
 });

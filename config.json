@@ -1,0 +1,5 @@
+{
+  "secret": "öliööölisvfasef",
+  "audience": "backend-boilerplate-users",
+  "issuer": "https://gonto.com"
+}
