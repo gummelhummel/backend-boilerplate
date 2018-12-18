@@ -48,9 +48,14 @@ api.get("*", (_, res) => {
       else res.status(404).send({});
     });
   else
-    fs.readdir(config.dataDir + res.locals.path, (err, f) => {
+    fs.readdir(config.dataDir + res.locals.path, (err, files) => {
       if (err) res.status(404).send([]);
-      else res.json(f.slice(res.locals.from, res.locals.to));
+      else
+        res.json(
+          files
+            .slice(res.locals.from, res.locals.to)
+            .filter(id => !fs.statSync(res.locals.path + id).isDirectory())
+        );
     });
 });
 
