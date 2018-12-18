@@ -45,3 +45,10 @@ exports.me = l => {
     path: l.path
   };
 };
+
+exports.filterObjectKeys = (obj, keys) => {
+  if (keys === "") return obj;
+  let o = {};
+  keys.map(k => (o[k] = obj[k]));
+  return o;
+};

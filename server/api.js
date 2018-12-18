@@ -12,6 +12,8 @@ api.use("*", (req, res, next) => {
   res.locals.from = p * s;
   res.locals.to = p * s + s;
 
+  res.locals.select = req.query.select ? req.query.select.split(",") : "";
+
   res.locals.path = req.originalUrl.slice(
     0,
     req.originalUrl.lastIndexOf("/") !== 1
@@ -44,8 +46,9 @@ api.use("*", (req, res, next) => {
 api.get("*", (_, res) => {
   if (res.locals.id !== "")
     fn.getContent(res.locals.path, res.locals.id, content => {
-      if (content) res.status(200).send(content);
-      else res.status(404).send({});
+      if (content) {
+        res.status(200).send(fn.filterObjectKeys(content, res.locals.select));
+      } else res.status(404).send({});
     });
   else
     fs.readdir(config.dataDir + res.locals.path, (err, files) => {
@@ -54,7 +57,20 @@ api.get("*", (_, res) => {
         res.json(
           files
             .slice(res.locals.from, res.locals.to)
-            .filter(id => !fs.statSync(res.locals.path + id).isDirectory())
+            .filter(
+              id =>
+                !fs
+                  .statSync(config.dataDir + res.locals.path + id)
+                  .isDirectory()
+            )
+            .map(id => {
+              return fn.filterObjectKeys(
+                JSON.parse(
+                  fs.readFileSync(config.dataDir + res.locals.path + id)
+                ),
+                res.locals.select
+              );
+            })
         );
     });
 });
