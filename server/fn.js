@@ -5,7 +5,7 @@ const fs = require("fs"),
 exports.getContent = (path, id, callback) => {
   if (cache.get(id)) callback(cache.get(id));
   else {
-    const file = config.dataDir + path + id;
+    const file = path + id;
     fs.stat(file, (err, stat) => {
       if (err) callback(false);
       else
@@ -18,6 +18,12 @@ exports.getContent = (path, id, callback) => {
         });
     });
   }
+};
+
+exports.getContentSync = (path, id) => {
+  if (cache.get(id)) return cache.get(id);
+  cache.set(id, JSON.parse(fs.readFileSync(path + id)));
+  return cache.get(id);
 };
 
 exports.saveContent = (path, id, content, callback) => {

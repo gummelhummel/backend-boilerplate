@@ -45,7 +45,7 @@ api.use("*", (req, res, next) => {
 
 api.get("*", (_, res) => {
   if (res.locals.id !== "")
-    fn.getContent(res.locals.path, res.locals.id, content => {
+    fn.getContent(config.dataDir + res.locals.path, res.locals.id, content => {
       if (content) {
         res.status(200).send(fn.filterObjectKeys(content, res.locals.select));
       } else res.status(404).send({});
@@ -65,9 +65,7 @@ api.get("*", (_, res) => {
             )
             .map(id => {
               return fn.filterObjectKeys(
-                JSON.parse(
-                  fs.readFileSync(config.dataDir + res.locals.path + id)
-                ),
+                fn.getContentSync(config.dataDir + res.locals.path, id),
                 res.locals.select
               );
             })
@@ -100,7 +98,7 @@ api.post("*", (req, res) => {
 });
 
 api.put("*", (req, res) => {
-  fn.getContent(res.locals.path, res.locals.id, content => {
+  fn.getContent(config.dataDir + res.locals.path, res.locals.id, content => {
     if (content) {
       req.body._me = fn.me(res.locals);
       fs.writeFile(
@@ -117,7 +115,7 @@ api.put("*", (req, res) => {
 });
 
 api.patch("*", (req, res) => {
-  fn.getContent(res.locals.path, res.locals.id, content => {
+  fn.getContent(config.dataDir + res.locals.path, res.locals.id, content => {
     if (content) {
       for (let key in req.body) content[key] = req.body[key];
       fs.writeFile(
