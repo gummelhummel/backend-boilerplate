@@ -28,9 +28,9 @@ let dataService = (() => {
 })();
 
 let collections = [];
-let newCollectionName = '';
+let newCollectionName = "";
 
-let update = ()=>dataService.listCollections(l => (collections = l));
+let update = () => dataService.listCollections(l => (collections = l));
 
 update();
 
@@ -38,16 +38,17 @@ m.mount(document.body, {
   view(vnode) {
     return [
       h1("Collections"),
-      ol(collections.map(li)),
+      ol(collections.map(e => li(e))),
       form(
         formfield(
           input({
-            value:newCollectionName,
-              oninput:m.withAttr('value',v=>newCollectionName=v)
+            value: newCollectionName,
+            oninput: m.withAttr("value", v => (newCollectionName = v))
           }),
           a.button(
             {
-              onclick: ()=> dataService.addCollection(newCollectionName,update)
+              onclick: () =>
+                dataService.addCollection(newCollectionName, update)
             },
             "+"
           )

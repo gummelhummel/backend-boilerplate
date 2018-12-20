@@ -18,13 +18,24 @@ const uuid = (() => {
   };
 })();
 
-const d = (e) => {
+const d = e => {
   console.log(e);
   return e;
 };
 
-module.exports = config => {
+module.exports = (
+  config,
+  read = async () => {
+    return {};
+  },
+  write = async () => {}
+) => {
+  let localRead = () => read(config);
   const collections = {};
+   localRead().then(v=>{
+     for (const k in v) collections[k] = v[k];
+   });
+  let localWrite = () =>  write(collections);
 
   const getCollection = n => {
     if (!(n in collections)) {
@@ -36,6 +47,7 @@ module.exports = config => {
   const _createCollection = name => {
     if (!collections[name]) {
       collections[name] = [];
+      localWrite();
     }
   };
 
@@ -45,6 +57,7 @@ module.exports = config => {
     },
     clearCollection: async name => {
       delete collections[name];
+      localWrite();
     },
     save: async (collectionName, obj) => {
       let { _id } = obj;
@@ -57,6 +70,7 @@ module.exports = config => {
         _id = uuid.draw();
         collection.push({ ...obj, _id: _id });
       }
+      localWrite();
       return _id;
     },
     listCollections: async () => {
@@ -64,11 +78,12 @@ module.exports = config => {
     },
     clear: async () => {
       for (const o in collections) delete collections[o];
+      localWrite();
     },
     listCollection: async (name, keys = []) => {
       const collection = getCollection(name);
       if (keys.length === 0) keys.push("_id");
-      
+
       return collection.map(o =>
         keys.reduce((obj, k) => {
           obj[k] = o[k];

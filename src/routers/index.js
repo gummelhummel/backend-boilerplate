@@ -2,7 +2,34 @@ const bodyParser = require("body-parser");
 const path = require("path");
 
 module.exports = (express, services) => {
-  const apidata = require("./api-data")(services.data);
+  const apiDataRouter = (() => {
+    const apidata = require("./api-data")(services.data);
+
+    const data = express();
+    // Delete everything
+    data.delete("", apidata.clear);
+
+    // List collections
+    data.get("/", apidata.list);
+
+    // List all keys in one collection
+    data.get("/:collection/", apidata.listCollection);
+
+    // Request an item by id
+    data.get("/:collection/:id", apidata.get);
+
+    // create a new object in a collection
+    data.post("/:collection", apidata.save);
+
+    // Patch an existing object (only overwrite the fields sent in body)
+    data.patch("/:collection/:id", apidata.update);
+
+    // Overwrite an existing object
+    data.put("/:collection/:id", apidata.save);
+
+    return data;
+  })();
+
   return {
     route: app => {
       app.get("/", (req, res) => {
@@ -13,32 +40,13 @@ module.exports = (express, services) => {
 
       app.use(bodyParser.json());
 
-      // Delete everything
-      app.delete("/api/data", apidata.clear);
+      app.use("/api/data", apiDataRouter);
 
-      // List collections
-      app.get("/api/data/", apidata.list);
-
-      // List all keys in one collection
-      app.get("/api/data/:collection/", apidata.listCollection);
-
-      // Request an item by id
-      app.get("/api/data/:collection/:id", apidata.get);
-
-      // create a new object in a collection
-      app.post("/api/data/:collection", apidata.save);     
-
-      // Patch an existing object (only overwrite the fields sent in body)
-      app.patch("/api/data/:collection/:id", apidata.update);
-      
-      // Overwrite an existing object 
-      app.put("/api/data/:collection/:id", apidata.save);
-      
       // assets for frontend
       app.get("/*", express.static("dist", { redirect: false }));
 
       app.all("/*", (req, res) => {
-        console.log('404')
+        console.log("404", req.originalUrl, req.method);
         res.status(404).sendFile("404.html", {
           root: path.join(__dirname, "../../frontend")
         });
