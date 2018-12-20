@@ -10,10 +10,10 @@ module.exports = data => {
       res.status(200).send(k);
     },
     listCollection: async (req, res) => {
-        let path = req.path[0];
-        let k = await data.listCollection(req.params.collection);
-        res.status(200).send(k);
-      },
+      let path = req.path[0];
+      let k = await data.listCollection(req.params.collection);
+      res.status(200).send(k);
+    },
     clear: async (req, res) => {
       await data.clear();
       res.status(204).end();
@@ -22,6 +22,7 @@ module.exports = data => {
       let path = req.path[0];
       let _id = await data.save(req.params.collection, req.body);
       res.status(201).end(_id);
-    }
+    },
+    update: async (req, res) => {}
   };
 };
