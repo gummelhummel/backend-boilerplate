@@ -1,6 +1,11 @@
 import m from "mithril";
-
 import tagl from "tagl-mithril";
+
+import userService from "./user-service";
+
+import UserLogin from "./comp-user-login";
+
+import FileUpload from "./comp-file-upload";
 
 const {
   form,
@@ -19,10 +24,12 @@ const {
 let dataService = (() => {
   return {
     listCollections: cb => {
-      m.request({ url: "/api/data" }).then(cb);
+      userService.request({ url: "/api/data" }).then(cb);
     },
     addCollection: (name, cb) => {
-      m.request({ url: `/api/data/${name}` }).then(cb);
+      userService.request({ url: `/api/data/${name}`, method:'POST', data:{
+        hey:'data'
+      } }).then(cb);
     }
   };
 })();
@@ -37,23 +44,27 @@ update();
 m.mount(document.body, {
   view(vnode) {
     return [
-      h1("Collections"),
+      m(FileUpload,{},'ll'),
+      h1("Collections 2"),
       ol(collections.map(e => li(e))),
-      form(
-        formfield(
-          input({
-            value: newCollectionName,
-            oninput: m.withAttr("value", v => (newCollectionName = v))
-          }),
-          a.button(
-            {
-              onclick: () =>
-                dataService.addCollection(newCollectionName, update)
-            },
-            "+"
+      userService.loggedIn()
+        ? form(
+            formfield(
+              input({
+                value: newCollectionName,
+                oninput: m.withAttr("value", v => (newCollectionName = v))
+              }),
+              a.button(
+                {
+                  onclick: () =>
+                    dataService.addCollection(newCollectionName, update)
+                },
+                "+"
+              )
+            )
           )
-        )
-      )
+        : null,
+      footer(m(UserLogin))
     ];
   }
 });
