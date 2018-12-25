@@ -2,12 +2,13 @@ import m from "mithril";
 import tagl from "tagl-mithril";
 import U from './user-service';
 
+
 const { label, form, formfield, input, button } = tagl(m);
 
 const upload = (files) => {
     var data = new FormData()
     for (var i = 0; i < files.length; i++) {
-        data.append("file" + i, files[i])
+        data.append("file", files[i])
     }
     U.request({
         method: "POST",

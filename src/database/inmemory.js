@@ -32,10 +32,10 @@ module.exports = (
 ) => {
   let localRead = () => read(config);
   const collections = {};
-   localRead().then(v=>{
-     for (const k in v) collections[k] = v[k];
-   });
-  let localWrite = () =>  write(collections);
+  localRead().then(v => {
+    for (const k in v) collections[k] = v[k];
+  });
+  let localWrite = () => write(collections);
 
   const getCollection = n => {
     if (!(n in collections)) {
@@ -74,7 +74,7 @@ module.exports = (
       return _id;
     },
     listCollections: async () => {
-      return Object.keys(collections);
+      return Object.keys(collections).filter(c => c[0] !== "_");
     },
     clear: async () => {
       for (const o in collections) delete collections[o];

@@ -29,14 +29,20 @@ function startApi() {
   });
 }
 
+async function login() {
+  let {body} = await queryApi('POST',"/api/users/session", {body:{username: 'gonto', password:'gonto'}});  
+  return body;
+}
+
 async function addProduct(data) {
   const defaultProduct = {
     name: faker.commerce.product(),
     price: faker.finance.amount(),
     weight: faker.random.number()
   };
-  const body = Object.assign(defaultProduct, data);
-  return await queryApi("POST", "/api/data/products", { body });
+  const body = Object.assign(defaultProduct, data);  
+  const token = await login();
+  return await queryApi("POST", "/api/data/products", { body, headers: {'Authorization': 'Bearer ' + token.access_token }});
 }
 
 

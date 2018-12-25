@@ -1,6 +1,9 @@
 const bodyParser = require("body-parser");
 const path = require("path");
 const jwt = require("express-jwt");
+const multer = require('multer');
+
+var upload = multer({ dest: 'tmp/uploads/' })
 
 module.exports = (express, services, config) => {
   var jwtCheck = jwt({
@@ -13,15 +16,14 @@ module.exports = (express, services, config) => {
     const files = require('./files')(config, services);
     const fileRouter = express();
 
-    fileRouter.post('/', files.upload);
-    fileRouter.get('/:fname', files.get);
+    fileRouter.get('/:id', files.get);    
+    fileRouter.post('/', jwtCheck, upload.array('file',12), files.upload);
 
     return fileRouter;
   })(config, services);
 
   const userRouter = (() => {
     const users = require("./users")(config, services);
-
     const userRouter = express();
 
     userRouter.post("/", users.createUser);

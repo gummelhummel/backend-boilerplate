@@ -2,7 +2,7 @@ import m from "mithril";
 import tagl from "tagl-mithril";
 import userService from "./user-service";
 
-const { form, formfield, input, label, button } = tagl(m);
+const { form, formfield, input, label, a } = tagl(m);
 
 let email = "";
 let password = "";
@@ -10,13 +10,13 @@ let password = "";
 export default {
   view(vnode) {
     return userService.loggedIn()
-      ? form(button.secondary({ onclick: () => userService.logout() }, "Logout"))
+      ? form(a.button.secondary({ onclick: () => userService.logout() }, "Logout"))
       : [
           form(
             formfield(
               label("Email"),
               input({
-                type: "email",
+                type: "text",
                 oninput: m.withAttr("value", v => (email = v))
               })
             ),
@@ -27,8 +27,8 @@ export default {
                 oninput: m.withAttr("value", v => (password = v))
               })
             ),
-            button.tertiary(
-              { onclick: () => userService.login(email, password) },
+            a.button.tertiary(
+              { onclick: () => userService.login(email, password,m.redraw) },
               "Login"
             )
           )
