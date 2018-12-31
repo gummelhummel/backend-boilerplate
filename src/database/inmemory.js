@@ -91,7 +91,9 @@ module.exports = (
         }, {})
       );
     },
+    search: async (collectionName, search)=>{
 
+    },
     get: async (collectionName, id) => {
       const collection = getCollection(collectionName);
       const result = collection.filter(o => o._id === id);

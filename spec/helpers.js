@@ -47,7 +47,8 @@ async function addProduct(data) {
 
 
 async function deleteAllData (){
-  return await queryApi("DELETE", "/api/data");
+  const token = await login();
+  return await queryApi("DELETE", "/api/data", { headers: {'Authorization': 'Bearer ' + token.access_token }});  
 }
 
 module.exports = {

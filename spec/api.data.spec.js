@@ -40,6 +40,9 @@ describe("Api Data", () => {
     describe("When there is some data", () => {
       beforeEach(async () => {
         await testUtils.deleteAllData();
+
+        const { body } = await queryApi("GET", "/api/data/products/");
+
         await testUtils.addProduct();
       });
 
