@@ -1,10 +1,8 @@
 import m from "mithril";
 import tagl from "tagl-mithril";
 
-import userService from "./user-service";
-
+import UserService from "./service-user";
 import UserLogin from "./comp-user-login";
-
 import FileUpload from "./comp-file-upload";
 import FileList from "./comp-file-list";
 
@@ -29,16 +27,16 @@ const {
 let dataService = (() => {
   return {
     listCollection: (collection, cb) => {
-      userService.request({ url: `/api/data/${collection}` }).then(cb);
+      UserService.request({ url: `/api/data/${collection}` }).then(cb);
     },
     listCollections: cb => {
-      userService.request({ url: "/api/data" }).then(cb);
+      UserService.request({ url: "/api/data" }).then(cb);
     },
     get: (collection, id, cb) => {
-      userService.request({ url: `/api/data/${collection}/${id}` }).then(cb);
+      UserService.request({ url: `/api/data/${collection}/${id}` }).then(cb);
     },
     addCollection: (name, cb) => {
-      userService
+      UserService
         .request({
           url: `/api/data/${name}`,
           method: "POST",
@@ -88,7 +86,7 @@ class Router {
           return [
             h1("Collections"),
             ol(collections.map(e => li(e))),
-            userService.loggedIn()
+            UserService.loggedIn()
               ? form(
                   formfield(
                     input({
@@ -121,8 +119,8 @@ m.mount(document.body, {
   view(vnode) {
     return [
       header(
-        a.button.logo("ContEase"),
-        userService.loggedIn()
+        a.button.logo("☃ ContEase"),
+        UserService.loggedIn()
           ? [
               label.drawerToggle.persistent({ for: "drawer-control" }),
               input.drawer.persistent.$drawerControl({
