@@ -2,6 +2,7 @@ import m from "mithril";
 import tagl from "tagl-mithril";
 import Size from "./comp-disk-size";
 import Abbr from "./comp-abbr";
+import UserService from './service-user';
 
 const { mark, h2, div, pre, img, a, label, input, h3, p, abbr } = tagl(m);
 
@@ -37,13 +38,14 @@ export default {
               m.trust("&nbsp;"),
               m(Size, { size: file.size })
             ),
-            div.section(
+            UserService.loggedIn()? div.section(
               a.button("⚓"),
               a.button("♥"),
               a.button("⚐⚑"),
               a.button("✎"),
+              a.button('🗑️'),
               a.button({ href: `/api/files/${file._id}` }, "⬇💾")
-            ),
+            ):null,
          //   div.section(pre(JSON.stringify(file, undefined, 2))),
           whenImage(file.mimetype, [
               img.section.media({

@@ -6,6 +6,7 @@ const deepEqualAsymmetric = (o1, o2) => {
     if ("$ge" in o1) return o2 >= o1["$ge"];
     if ("$before" in o1) return o1["$before"] < o2;
     if ("$after" in o1) return o1 > o2;
+    if ("$contains" in o1) return (o2 || "").indexOf(o1["$contains"]) >= 0;
     if ("$ne" in o1) return o2 !== o1["$ne"];
     if ("$in" in o1) return !!o1["$in"].find(e => e === o2);
   }

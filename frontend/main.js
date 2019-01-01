@@ -6,6 +6,8 @@ import UserLogin from "./comp-user-login";
 import FileUpload from "./comp-file-upload";
 import FileList from "./comp-file-list";
 
+import ImagePage from "./page-images";
+
 const {
   form,
   formfield,
@@ -36,15 +38,13 @@ let dataService = (() => {
       UserService.request({ url: `/api/data/${collection}/${id}` }).then(cb);
     },
     addCollection: (name, cb) => {
-      UserService
-        .request({
-          url: `/api/data/${name}`,
-          method: "POST",
-          data: {
-            hey: "data"
-          }
-        })
-        .then(cb);
+      UserService.request({
+        url: `/api/data/${name}`,
+        method: "POST",
+        data: {
+          hey: "data"
+        }
+      }).then(cb);
     }
   };
 })();
@@ -78,7 +78,8 @@ class Router {
       "/home": Page,
       "/files": {
         view(vnode) {
-          return [m(FileUpload, {}, "ll"), m(FileList, { files: files }, "ll")];
+          return [            UserService.loggedIn()?
+            m(FileUpload, {}, "ll"):null, m(FileList, { files: files }, "ll")];
         }
       },
       "/documents": {
@@ -106,7 +107,7 @@ class Router {
           ];
         }
       },
-      "/images": Page,
+      "/images": ImagePage,
       "/profile": Page
     });
   }

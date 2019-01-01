@@ -12,3 +12,11 @@ background: linear-gradient(to right, #F9D423, #e65c00); /* W3C, IE 10+/ Edge, F
 .file{
 min-height: 350px;
 }
+
+.not_selected{
+    border:   2px solid #F9D423;
+}
+
+.selected{
+    border: #e65c00  2px dashed;
+}
