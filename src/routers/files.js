@@ -1,11 +1,6 @@
 const express = require("express");
 const path = require("path");
-
-let k = express();
-
-k.get("", (req, res) => {
-  res.contentType();
-});
+const fs = require("fs");
 
 module.exports = (config, services) => {
   const upload = (req, res) => {
@@ -28,9 +23,34 @@ module.exports = (config, services) => {
     console.log(req.originalUrl);
   };
 
+  const unlink = async filename =>
+    new Promise((res, rej) => fs.unlink(filename, (err, data) => res(!!err)));
+
+  const remove = async (req, res) => {
+    let item = await services.data.get("_files", req.params.id);
+    if (item) {
+      const filename = path.join(__dirname, "../../tmp/uploads", item.filename);
+
+      console.log("file: " + filename);
+
+      let err = await unlink(filename);
+
+      if (err) {
+        let result = await services.data.remove("_files", req.params.id);
+        res.status(500).send(result);
+      } else {
+        let result = await services.data.remove("_files", req.params.id);
+        res.status(204).send(result);
+      }
+    } else {
+      next();
+    }
+  };
+
   return {
     get,
     upload,
-    list
+    list,
+    remove
   };
 };

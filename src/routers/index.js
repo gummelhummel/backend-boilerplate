@@ -18,6 +18,8 @@ module.exports = (express, services, config) => {
 
     fileRouter.get("/:id", files.get);
     fileRouter.post("/", jwtCheck, upload.array("file", 12), files.upload);
+    // Delete an existing object
+    fileRouter.delete("/:id", jwtCheck, files.remove);
 
     return fileRouter;
   })(config, services);
@@ -59,6 +61,9 @@ module.exports = (express, services, config) => {
 
     // Overwrite an existing object
     data.put("/:collection/:id", jwtCheck, apidata.save);
+
+    // Delete an existing object
+    data.delete("/:collection/:id", jwtCheck, apidata.remove);
 
     return data;
   })();

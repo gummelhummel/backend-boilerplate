@@ -7,6 +7,9 @@ import FileUpload from "./comp-file-upload";
 import FileList from "./comp-file-list";
 
 import ImagePage from "./page-images";
+import FilePage from "./page-files";
+
+import dataService from './service-data';
 
 const {
   form,
@@ -26,44 +29,13 @@ const {
   div
 } = tagl(m);
 
-let dataService = (() => {
-  return {
-    listCollection: (collection, cb) => {
-      UserService.request({ url: `/api/data/${collection}` }).then(cb);
-    },
-    listCollections: cb => {
-      UserService.request({ url: "/api/data" }).then(cb);
-    },
-    get: (collection, id, cb) => {
-      UserService.request({ url: `/api/data/${collection}/${id}` }).then(cb);
-    },
-    addCollection: (name, cb) => {
-      UserService.request({
-        url: `/api/data/${name}`,
-        method: "POST",
-        data: {
-          hey: "data"
-        }
-      }).then(cb);
-    }
-  };
-})();
 
 let collections = [];
 let newCollectionName = "";
-let files = [];
 
 let update = () => dataService.listCollections(l => (collections = l));
-let updateFiles = () =>
-  dataService.listCollection("_files", l => {
-    files = l.map(p => p._id);
-    files.forEach((id, idx) =>
-      dataService.get("_files", id, f => (files[idx] = f))
-    );
-  });
 
 update();
-updateFiles();
 
 class Page {
   view(vnode) {
@@ -76,12 +48,7 @@ class Router {
     m.route(vnode.dom, "/", {
       "/": UserLogin,
       "/home": Page,
-      "/files": {
-        view(vnode) {
-          return [            UserService.loggedIn()?
-            m(FileUpload, {}, "ll"):null, m(FileList, { files: files }, "ll")];
-        }
-      },
+      "/files": FilePage,
       "/documents": {
         view(vnode) {
           return [

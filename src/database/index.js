@@ -9,5 +9,6 @@ module.exports = config => {
     listCollections: database.listCollections,
     listCollection: database.listCollection,
     search: database.search,
+    remove: database.remove,
   };
 };

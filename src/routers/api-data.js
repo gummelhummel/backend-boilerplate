@@ -27,6 +27,10 @@ module.exports = data => {
       let result = await data.search(req.params.collection, req.body);
       res.status(200).send(result);      
     },
-    update: async (req, res) => {}
+    update: async (req, res) => {},
+    remove: async (req,res) => {
+      let result = await data.remove(req.params.collection,req.params.id);
+      res.status(204).send(result);
+    }
   };
 };

@@ -1,5 +1,4 @@
-
-const fn = require('../search-fn');
+const fn = require("../search-fn");
 
 const noop = () => {};
 
@@ -94,13 +93,23 @@ module.exports = (
         }, {})
       );
     },
-    search: async (collectionName, search)=>{
-      return fn.search(getCollection(collectionName),search);
+    search: async (collectionName, search) => {
+      return fn.search(getCollection(collectionName), search);
     },
     get: async (collectionName, id) => {
       const collection = getCollection(collectionName);
       const result = collection.filter(o => o._id === id);
       return result[0] || undefined;
+    },
+    remove: async (collectionName, id) => {
+      const collection = getCollection(collectionName);
+      const newCollection = collection.filter(c => c._id !== id);
+      if (collection.length !== newCollection.length) {
+        collections[collectionName] = newCollection;
+        localWrite();
+        return true;
+      }
+      return false;
     }
   };
 };

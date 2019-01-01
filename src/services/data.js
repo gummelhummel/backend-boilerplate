@@ -8,6 +8,7 @@ module.exports = database => {
     listCollection : database.listCollection,
     clearCollection: database.clearCollection,
     get: database.get,
-    search: database.search
+    search: database.search,
+    remove: database.remove,
   };
 };
