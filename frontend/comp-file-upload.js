@@ -4,12 +4,7 @@ import U from "./service-user";
 
 const { label, form, formfield, input, button } = tagl(m);
 
-const upload = (
-  files,
-  cb = () => {
-    console.log("No Event defined");
-  }
-) => {
+const upload = (files, cb = () => {}) => {
   var data = new FormData();
   for (var i = 0; i < files.length; i++) {
     data.append("file", files[i]);
@@ -23,7 +18,6 @@ const upload = (
 
 export default {
   view(vnode) {
-    console.log(vnode.attrs.onupload)
     return [
       form(
         formfield(
@@ -34,8 +28,7 @@ export default {
             placeholder: "Select a file",
             oninput: m.withAttr("files", v => upload(v, vnode.attrs.onupload))
           })
-        ),
-     //   button({ onclick: upload }, "Upload")
+        )
       )
     ];
   }
