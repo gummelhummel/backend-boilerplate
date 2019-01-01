@@ -8,5 +8,6 @@ module.exports = config => {
     createCollection: database.createCollection,
     listCollections: database.listCollections,
     listCollection: database.listCollection,
+    search: database.search,
   };
 };

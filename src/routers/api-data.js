@@ -23,6 +23,10 @@ module.exports = data => {
       let _id = await data.save(req.params.collection, req.body);
       res.status(201).end(_id);
     },
+    search: async (req,res) => {
+      let result = await data.search(req.params.collection, req.body);
+      res.status(200).send(result);      
+    },
     update: async (req, res) => {}
   };
 };

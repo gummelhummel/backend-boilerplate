@@ -59,4 +59,74 @@ describe("Api Data", () => {
       });
     });
   });
+
+  describe("POST /api/data/search/:collection", () => {
+    beforeEach(async () => {
+      await testUtils.deleteAllData();
+      const { body1 } = await queryApi("GET", "/api/data/products/");
+      await testUtils.addProduct({ kaleidoscope: 123 });
+      await testUtils.addProduct({ kaleidoscope: 125 });
+      await testUtils.addProduct({ kaleidoscope: 127 });
+      await testUtils.addProduct({ kaleidoscope: 127 });
+      await testUtils.addProduct();
+      const { body } = await queryApi("GET", "/api/data/products/");
+      body.forEach(async o => {
+        const { body } = await queryApi("GET", `/api/data/products/${o._id}`);
+      });
+    });
+
+    it("returns 200", async () => {
+      const { statusCode } = await queryApi(
+        "POST",
+        "/api/data/search/products"
+      );
+      expect(statusCode).to.equal(200);
+    });
+
+    it("an empty search will return everything (one object)", async () => {
+      const { body } = await queryApi("POST", "/api/data/search/products", {
+        body: {}
+      });
+      expect(body).length(5);
+    });
+
+    it("a search can return one object", async () => {
+      const { body } = await queryApi("POST", "/api/data/search/products", {
+        body: {
+          kaleidoscope: 125
+        }
+      });
+      expect(body).length(1);
+    });
+
+    it("a search can return two objects", async () => {
+      const { body } = await queryApi("POST", "/api/data/search/products", {
+        body: {
+          kaleidoscope: 127
+        }
+      });
+      expect(body).length(2);
+    });
+
+    it("a search can return no objects", async () => {
+      const { body } = await queryApi("POST", "/api/data/search/products", {
+        body: {
+          kaleidoscope: 1270
+        }
+      });
+      expect(body).length(0);
+    });
+
+    it("a more interesting search can also be performed", async () => {
+      const { body } = await queryApi("POST", "/api/data/search/products", {
+        body: {
+          kaleidoscope: { $ne: 127 }
+        }
+      });
+      expect(body).length(3);
+      body.map(o => o.kaleidoscope).forEach(b => console.log(b));
+
+      body.forEach(o => expect(o.kaleidoscope).not.to.equal(127));
+    });
+  });
 });

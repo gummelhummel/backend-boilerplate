@@ -1,9 +1,9 @@
 const bodyParser = require("body-parser");
 const path = require("path");
 const jwt = require("express-jwt");
-const multer = require('multer');
+const multer = require("multer");
 
-var upload = multer({ dest: 'tmp/uploads/' })
+var upload = multer({ dest: "tmp/uploads/" });
 
 module.exports = (express, services, config) => {
   var jwtCheck = jwt({
@@ -13,11 +13,11 @@ module.exports = (express, services, config) => {
   });
 
   const fileRouter = (() => {
-    const files = require('./files')(config, services);
+    const files = require("./files")(config, services);
     const fileRouter = express();
 
-    fileRouter.get('/:id', files.get);    
-    fileRouter.post('/', jwtCheck, upload.array('file',12), files.upload);
+    fileRouter.get("/:id", files.get);
+    fileRouter.post("/", jwtCheck, upload.array("file", 12), files.upload);
 
     return fileRouter;
   })(config, services);
@@ -41,6 +41,9 @@ module.exports = (express, services, config) => {
 
     // List collections
     data.get("/", apidata.list);
+
+    // Search items in a specific collection
+    data.post("/search/:collection", apidata.search);
 
     // List all keys in one collection
     data.get("/:collection/", apidata.listCollection);

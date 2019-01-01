@@ -44,6 +44,12 @@ let testCollection = [
 describe("Search", () => {
   testUtils.startApi();
 
+    describe("special queries",()=>{
+        it("will return all elements on an empty query",async()=>{
+            expect(fn.search(testCollection,{})).to.deep.equal(testCollection);
+        });
+    });
+
   describe("exact match", () => {
     it("returns a value with exactly matching id field", async () => {
       expect(fn.search(testCollection, { _id: 1 })).to.deep.equal([

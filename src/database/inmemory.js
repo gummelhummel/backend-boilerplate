@@ -1,3 +1,6 @@
+
+const fn = require('../search-fn');
+
 const noop = () => {};
 
 const uuid = (() => {
@@ -92,7 +95,7 @@ module.exports = (
       );
     },
     search: async (collectionName, search)=>{
-
+      return fn.search(getCollection(collectionName),search);
     },
     get: async (collectionName, id) => {
       const collection = getCollection(collectionName);

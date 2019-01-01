@@ -7,6 +7,7 @@ module.exports = database => {
     listCollections : database.listCollections,
     listCollection : database.listCollection,
     clearCollection: database.clearCollection,
-    get: database.get
+    get: database.get,
+    search: database.search
   };
 };
