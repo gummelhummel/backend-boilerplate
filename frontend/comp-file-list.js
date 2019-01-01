@@ -4,10 +4,28 @@ import Size from "./comp-disk-size";
 import Abbr from "./comp-abbr";
 import UserService from "./service-user";
 
-const { mark, h2, div, pre, img, a, label, input, h3, p, abbr } = tagl(m);
+const {
+  video,
+  source,
+  mark,
+  h2,
+  div,
+  pre,
+  img,
+  a,
+  label,
+  input,
+  h3,
+  p,
+  abbr
+} = tagl(m);
 
 const whenImage = (mimetype, expr) => {
   return (mimetype || "").indexOf("image") >= 0 ? expr : null;
+};
+
+const whenVideo = (mimetype, expr) => {
+  return (mimetype || "").indexOf("video") >= 0 ? expr : null;
 };
 
 const mimemap = {
@@ -21,6 +39,9 @@ const mimemap = {
   },
   "text/plain": {
     icon: "📝"
+  },
+  "video/mp4": {
+    icon: "📽️"
   }
 };
 
@@ -78,6 +99,29 @@ export default {
                     width: "100%",
                     src: `/api/files/${file._id}`
                   })
+                )
+              )
+            ]),
+            whenVideo(file.mimetype, [
+              video.section.media(
+                {
+                  width: "100%",
+                  controls: true
+                },
+                source({ src: `/api/files/${file._id}` })
+              ),
+              label({ for: `modal-control-${idx}` }, "Show"),
+              input.modal[`#modal-control-${idx}`]({ type: "checkbox" }),
+              div(
+                div.card.large.mmm(
+                  label.modalClose({ for: `modal-control-${idx}` }),
+                  h3.section(file.originalname),
+                  video.section.media(
+                    {
+                      width: "100%"
+                    },
+                    source({ src: `/api/files/${file._id}` })
+                  )
                 )
               )
             ])

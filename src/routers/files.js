@@ -30,11 +30,7 @@ module.exports = (config, services) => {
     let item = await services.data.get("_files", req.params.id);
     if (item) {
       const filename = path.join(__dirname, "../../tmp/uploads", item.filename);
-
-      console.log("file: " + filename);
-
       let err = await unlink(filename);
-
       if (err) {
         let result = await services.data.remove("_files", req.params.id);
         res.status(500).send(result);
