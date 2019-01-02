@@ -7,7 +7,7 @@ import UserService from "./service-user";
 const {
   video,
   source,
-  mark,
+  audio,
   h2,
   div,
   pre,
@@ -28,6 +28,10 @@ const whenVideo = (mimetype, expr) => {
   return (mimetype || "").indexOf("video") >= 0 ? expr : null;
 };
 
+const whenAudio = (mimetype, expr) => {
+  return (mimetype || "").indexOf("audio") >= 0 ? expr : null;
+};
+
 const mimemap = {
   "image/png": {
     name: "PNG Graphic",
@@ -42,6 +46,9 @@ const mimemap = {
   },
   "video/mp4": {
     icon: "📽️"
+  },
+  "audio/x-ms-wma": {
+    icon: "🎶"
   }
 };
 
@@ -109,20 +116,19 @@ export default {
                   controls: true
                 },
                 source({ src: `/api/files/${file._id}` })
-              ),
-              label({ for: `modal-control-${idx}` }, "Show"),
-              input.modal[`#modal-control-${idx}`]({ type: "checkbox" }),
-              div(
-                div.card.large.mmm(
-                  label.modalClose({ for: `modal-control-${idx}` }),
-                  h3.section(file.originalname),
-                  video.section.media(
-                    {
-                      width: "100%"
-                    },
-                    source({ src: `/api/files/${file._id}` })
-                  )
-                )
+              )
+            ]),
+            whenAudio(file.mimetype, [
+              audio.section.media(
+                {
+                  width: "100%",
+                  controls: true
+                },
+                source({
+                  src: `/api/files/${file._id}`,
+                  type: `${file.mimetype}`
+                }),
+                ' Your browser does not support the audio element.'
               )
             ])
           )
