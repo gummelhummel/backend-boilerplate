@@ -35,7 +35,7 @@ class Image {
 class ImagePage {
   view(vnode) {
     return [
-      h1("ImagePage ",span({
+      h1("Images ",span({
           onclick:update,
         style:"cursor: pointer"
       },'🔄')),
