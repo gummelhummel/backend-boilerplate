@@ -17,7 +17,8 @@ const {
   input,
   h3,
   p,
-  abbr
+  abbr,
+  mark
 } = tagl(m);
 
 const whenImage = (mimetype, expr) => {
@@ -81,7 +82,7 @@ export default {
               ? div.section(
                   a.button("⚓"),
                   a.button("♥"),
-                  a.button("⚐⚑"),
+                //  a.button("⚐⚑"),
                   a.button("✎"),
                   a.button(
                     { onclick: deleteFile(file._id, vnode.attrs.ondelete) },
@@ -90,7 +91,8 @@ export default {
                   a.button({ href: `/api/files/${file._id}` }, "⬇💾")
                 )
               : null,
-            div.section(pre(JSON.stringify(file, undefined, 2))),
+//            div.section(pre(JSON.stringify(file, undefined, 2))),
+            div.section(mark(file.mimetype)),
             whenImage(file.mimetype, [
               img.section.media({
                 width: "100%",

@@ -2,9 +2,18 @@ import m from "mithril";
 
 let user = null;
 
+user = JSON.parse(localStorage.getItem("user"));
+
+const save = () => {
+  localStorage.setItem("user", JSON.stringify(user));
+};
+
 module.exports = {
   loggedIn: () => user != null,
-  logout: () => (user = null),
+  logout: () => {
+    user = null;
+    save();
+  },
   login: (username, password, cb) =>
     m
       .request({
@@ -18,6 +27,7 @@ module.exports = {
       .then(response => {
         console.log(response);
         user = response;
+        save();
         cb();
       }),
   signup: (username, password) =>
@@ -31,8 +41,8 @@ module.exports = {
     }),
   request: options => {
     let headers = options.headers || {};
-    if (user) {    
-        headers["Authorization"] = "Bearer " + user.access_token;
+    if (user) {
+      headers["Authorization"] = "Bearer " + user.access_token;
     }
     options.headers = headers;
     return m.request({ ...options });

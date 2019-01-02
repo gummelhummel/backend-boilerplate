@@ -8,8 +8,9 @@ import FileList from "./comp-file-list";
 
 import ImagePage from "./page-images";
 import FilePage from "./page-files";
+import MarkdownPage from "./page-markdown";
 
-import dataService from './service-data';
+import dataService from "./service-data";
 
 const {
   form,
@@ -29,13 +30,26 @@ const {
   div
 } = tagl(m);
 
-
 let collections = [];
 let newCollectionName = "";
 
 let update = () => dataService.listCollections(l => (collections = l));
 
 update();
+
+let pages = [];
+
+const updatePageList = () => {
+  UserService.request({
+    url: "/api/data/search/_files",
+    method: "POST",
+    data: {
+      mimetype: { $contains: "markdown" }
+    }
+  }).then(_pages => (pages = _pages));
+};
+
+updatePageList();
 
 class Page {
   view(vnode) {
@@ -75,7 +89,8 @@ class Router {
         }
       },
       "/images": ImagePage,
-      "/profile": Page
+      "/profile": Page,
+      "/page/:id": MarkdownPage
     });
   }
   view(vnode) {
@@ -87,7 +102,16 @@ m.mount(document.body, {
   view(vnode) {
     return [
       header(
-        a.button.logo("☃ ContEase"),
+        a.button.logo(
+          {
+            onclick: () => {
+              m.route.set("/home");
+            }
+          },
+          "☃ ContEase"
+        ),
+        pages.map(page=>a.button({ onclick: () => m.route.set(`/page/${page._id}`) }, page.originalname.replace('.md',''))),        
+        a.button({ href: "/404" }, "404"),
         UserService.loggedIn()
           ? [
               label.drawerToggle.persistent({ for: "drawer-control" }),
