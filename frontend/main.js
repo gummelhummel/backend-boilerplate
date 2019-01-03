@@ -9,7 +9,7 @@ import FilePage from "./pages/files";
 import MarkdownPage from "./pages/markdown";
 import CollectionsPage from './pages/collections'
 
-import dataService from "./service/data";
+import dataService from "./services/data";
 
 const {
   form,

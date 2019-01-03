@@ -1,4 +1,4 @@
-import UserService from './service-user';
+import UserService from './user';
 
 export default {
     listCollection: (collection, cb) => {

@@ -2,7 +2,7 @@ import m from "mithril";
 import tagl from "tagl-mithril";
 import Size from "./disk-size";
 import Abbr from "./abbr";
-import UserService from "../../service-user";
+import UserService from "../services/user";
 
 const {
   video,

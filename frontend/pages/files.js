@@ -1,11 +1,11 @@
 import m from "mithril";
 import tagl from "tagl-mithril";
 
-import UserService from "./service-user";
-import DataService from "./service-data";
+import UserService from "../services/user";
+import DataService from "../services/data";
 
-import FileUpload from "./comp-file-upload";
-import FileList from "./comp-file-list";
+import FileUpload from "../components/file-upload";
+import FileList from "../components/file-list";
 
 const { h1 } = tagl(m);
 

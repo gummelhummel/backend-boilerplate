@@ -1,6 +1,6 @@
 import m from "mithril";
 import tagl from "tagl-mithril";
-import UserService from "./service-user";
+import UserService from "../services/user";
 
 const { a, h1, img, div, span } = tagl(m);
 

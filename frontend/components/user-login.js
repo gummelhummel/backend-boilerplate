@@ -1,6 +1,6 @@
 import m from "mithril";
 import tagl from "tagl-mithril";
-import userService from "./service-user";
+import userService from "../services/user";
 
 const { form, formfield, input, label, a } = tagl(m);
 
