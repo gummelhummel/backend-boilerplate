@@ -1,8 +1,8 @@
 import m from "mithril";
 import tagl from "tagl-mithril";
-import Size from "./comp-disk-size";
-import Abbr from "./comp-abbr";
-import UserService from "./service-user";
+import Size from "./disk-size";
+import Abbr from "./abbr";
+import UserService from "../../service-user";
 
 const {
   video,
