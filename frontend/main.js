@@ -1,16 +1,15 @@
 import m from "mithril";
 import tagl from "tagl-mithril";
 
-import UserService from "./service-user";
-import UserLogin from "./comp-user-login";
-import FileUpload from "./comp-file-upload";
-import FileList from "./comp-file-list";
+import UserService from "./services/user";
+import UserLogin from "./components/user-login";
 
-import ImagePage from "./page-images";
-import FilePage from "./page-files";
-import MarkdownPage from "./page-markdown";
+import ImagePage from "./pages/images";
+import FilePage from "./pages/files";
+import MarkdownPage from "./pages/markdown";
+import CollectionsPage from './pages/collections'
 
-import dataService from "./service-data";
+import dataService from "./service/data";
 
 const {
   form,
@@ -30,12 +29,6 @@ const {
   div
 } = tagl(m);
 
-let collections = [];
-let newCollectionName = "";
-
-let update = () => dataService.listCollections(l => (collections = l));
-
-update();
 
 let pages = [];
 
@@ -63,31 +56,7 @@ class Router {
       "/": UserLogin,
       "/home": Page,
       "/files": FilePage,
-      "/documents": {
-        view(vnode) {
-          return [
-            h1("Collections"),
-            ol(collections.map(e => li(e))),
-            UserService.loggedIn()
-              ? form(
-                  formfield(
-                    input({
-                      value: newCollectionName,
-                      oninput: m.withAttr("value", v => (newCollectionName = v))
-                    }),
-                    a.button(
-                      {
-                        onclick: () =>
-                          dataService.addCollection(newCollectionName, update)
-                      },
-                      "+"
-                    )
-                  )
-                )
-              : null
-          ];
-        }
-      },
+      "/documents": CollectionsPage,
       "/images": ImagePage,
       "/profile": Page,
       "/page/:id": MarkdownPage
