@@ -5,11 +5,10 @@ import UserService from "./services/user";
 import UserLogin from "./components/user-login";
 
 import ImagePage from "./pages/images";
-import FilePage from "./pages/files";
+import FilesPage from "./pages/files";
+import FilePage from "./pages/file";
 import MarkdownPage from "./pages/markdown";
 import CollectionsPage from './pages/collections'
-
-import dataService from "./services/data";
 
 const {
   form,
@@ -55,7 +54,8 @@ class Router {
     m.route(vnode.dom, "/", {
       "/": UserLogin,
       "/home": Page,
-      "/files": FilePage,
+      "/files": FilesPage,
+      "/files/:id": FilePage,
       "/documents": CollectionsPage,
       "/images": ImagePage,
       "/profile": Page,

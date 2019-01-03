@@ -19,3 +19,11 @@ footer {
 .selected {
     border: #e65c00 2px dashed;
 }
+
+.full-width {
+    width: 100%
+}
+
+.half-height {
+    height: 50vh
+}

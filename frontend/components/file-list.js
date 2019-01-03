@@ -82,8 +82,11 @@ export default {
               ? div.section(
                   a.button("⚓"),
                   a.button("♥"),
-                //  a.button("⚐⚑"),
-                  a.button("✎"),
+                  //  a.button("⚐⚑"),
+                  a.button(
+                    { onclick: () => m.route.set(`/files/${file._id}`) },
+                    "✎"
+                  ),
                   a.button(
                     { onclick: deleteFile(file._id, vnode.attrs.ondelete) },
                     "🗑️"
@@ -91,7 +94,7 @@ export default {
                   a.button({ href: `/api/files/${file._id}` }, "⬇💾")
                 )
               : null,
-//            div.section(pre(JSON.stringify(file, undefined, 2))),
+            //            div.section(pre(JSON.stringify(file, undefined, 2))),
             div.section(mark(file.mimetype)),
             whenImage(file.mimetype, [
               img.section.media({
@@ -130,7 +133,7 @@ export default {
                   src: `/api/files/${file._id}`,
                   type: `${file.mimetype}`
                 }),
-                ' Your browser does not support the audio element.'
+                " Your browser does not support the audio element."
               )
             ])
           )

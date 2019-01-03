@@ -43,10 +43,32 @@ module.exports = (config, services) => {
     }
   };
 
+  const writeFile = async (filename, body) =>
+    new Promise((res, rej) => fs.writeFile(filename, body, (err, data) => res(!!err)));
+
+
+  const update = async (req,res)=>{
+    let item = await services.data.get("_files", req.params.id);
+    if (item) {
+      const filename = path.join(__dirname, "../../tmp/uploads", item.filename);
+      let err = await writeFile(filename, req.body);
+      if (err) {
+        let result = await services.data.update("_files", req.params.id);
+        res.status(500).send(result);
+      } else {
+        let result = await services.data.update("_files", req.params.id);
+        res.status(201).send(result);
+      }
+    } else {
+      next();
+    }
+  };
+
   return {
     get,
     upload,
     list,
-    remove
+    remove,
+    update
   };
 };

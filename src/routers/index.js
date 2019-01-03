@@ -18,6 +18,8 @@ module.exports = (express, services, config) => {
 
     fileRouter.get("/:id", files.get);
     fileRouter.post("/", jwtCheck, upload.array("file", 12), files.upload);
+    fileRouter.put("/", jwtCheck, files.update);
+
     // Delete an existing object
     fileRouter.delete("/:id", jwtCheck, files.remove);
 

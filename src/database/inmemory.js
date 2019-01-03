@@ -83,6 +83,10 @@ module.exports = (
       localWrite();
     },
     listCollection: async (name, keys = []) => {
+      if (!(name in collections)) {
+        return null;
+      }
+
       const collection = getCollection(name);
       if (keys.length === 0) keys.push("_id");
 

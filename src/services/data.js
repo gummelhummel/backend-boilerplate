@@ -10,5 +10,6 @@ module.exports = database => {
     get: database.get,
     search: database.search,
     remove: database.remove,
+    update: database.save,    
   };
 };
