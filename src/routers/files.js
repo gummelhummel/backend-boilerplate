@@ -52,11 +52,12 @@ module.exports = (config, services) => {
     if (item) {
       const filename = path.join(__dirname, "../../tmp/uploads", item.filename);
       let err = await writeFile(filename, req.body);
+      let result = err;
       if (err) {
-        let result = await services.data.update("_files", req.params.id);
+        //let result = await services.data.update("_files", req.params.id);
         res.status(500).send(result);
       } else {
-        let result = await services.data.update("_files", req.params.id);
+        //let result = await services.data.update("_files", req.params.id);
         res.status(201).send(result);
       }
     } else {

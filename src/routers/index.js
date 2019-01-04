@@ -18,7 +18,7 @@ module.exports = (express, services, config) => {
 
     fileRouter.get("/:id", files.get);
     fileRouter.post("/", jwtCheck, upload.array("file", 12), files.upload);
-    fileRouter.put("/", jwtCheck, files.update);
+    fileRouter.put("/:id", jwtCheck, files.update);
 
     // Delete an existing object
     fileRouter.delete("/:id", jwtCheck, files.remove);
@@ -78,6 +78,7 @@ module.exports = (express, services, config) => {
         });
       });
 
+      app.use(bodyParser.text({type:'text/plain'}))
       app.use(bodyParser.json());
 
       app.use("/api/users", userRouter);
