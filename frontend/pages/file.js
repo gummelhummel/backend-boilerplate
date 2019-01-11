@@ -1,15 +1,17 @@
 import m from "mithril";
 import tagl from "tagl-mithril";
 
+import marked from "marked";
+
 import UserService from "../services/user";
 import DataService from "../services/data";
-import { write } from "fs";
 
-const { a, div, h1, textarea } = tagl(m);
+const { a, div, h1, textarea, span } = tagl(m);
 
 let file = null;
 
 let content = "";
+let preview = true;
 
 HTMLTextAreaElement.prototype.insertAtCaret = function(text) {
   text = text || "";
@@ -51,6 +53,9 @@ let writeFile = (id, data) => {
   });
 };
 
+/*
+ * This ugliness can be replaced by a text model closure.
+ */
 let ugly = null;
 
 class InsertableTextArea {
@@ -72,12 +77,28 @@ export default {
   view(vnode) {
     return [
       div.container(
-        h1("file ", vnode.attrs.id),
-        a.button({ onclick: () => ugly.insertAtCaret("Hello") }),
-        m(InsertableTextArea, {
-          value: content,
-          oninput: m.withAttr("value", v => (content = v))
-        }),
+        h1("File ", vnode.attrs.id),
+        a.small.button({ onclick: () => (preview = !preview) }, "preview"),
+        a.small.button({ onclick: () => ugly.insertAtCaret(":-)") }, ":-("),
+        a.small.button(
+          {
+            onclick: () => {
+              let url = prompt("Please enter the URL");
+              let text = prompt("Please enter the link text");
+              ugly.insertAtCaret(`[${text}](${url} "${url}")`);
+            }
+          },
+          span.iconLink()
+        ),
+        div.row(
+          div[preview ? "col-md-6" : "col-md-12"](
+            m(InsertableTextArea, {
+              value: content,
+              oninput: m.withAttr("value", v => (content = v))
+            })
+          ),
+          preview ? div["col-md-6"](m.trust(marked(content))) : null
+        ),
         div.buttonGroup(
           a.primary.button(
             {

@@ -10,6 +10,7 @@ const save = () => {
 
 module.exports = {
   loggedIn: () => user != null,
+  whenLoggedIn: expr => (user != null ? expr : null),
   logout: () => {
     user = null;
     save();

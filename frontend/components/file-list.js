@@ -21,17 +21,14 @@ const {
   mark
 } = tagl(m);
 
-const whenImage = (mimetype, expr) => {
-  return (mimetype || "").indexOf("image") >= 0 ? expr : null;
+const when = contained => (mimetype, expr) => {
+  return (mimetype || "").indexOf(contained) >= 0 ? expr : null;
 };
 
-const whenVideo = (mimetype, expr) => {
-  return (mimetype || "").indexOf("video") >= 0 ? expr : null;
-};
-
-const whenAudio = (mimetype, expr) => {
-  return (mimetype || "").indexOf("audio") >= 0 ? expr : null;
-};
+const whenImage = when("image");
+const whenVideo = when("video");
+const whenAudio = when("audio");
+const whenMarkdown = when("markdown");
 
 const mimemap = {
   "image/png": {
@@ -80,12 +77,15 @@ export default {
             ),
             UserService.loggedIn()
               ? div.section(
-                  a.button("⚓"),
-                  a.button("♥"),
+         //         a.button("⚓"),
+           //       a.button("♥"),
                   //  a.button("⚐⚑"),
-                  a.button(
-                    { onclick: () => m.route.set(`/files/${file._id}`) },
-                    "✎"
+                  whenMarkdown(
+                    file.mimetype,
+                    a.button(
+                      { onclick: () => m.route.set(`/files/${file._id}`) },
+                      "✎"
+                    )
                   ),
                   a.button(
                     { onclick: deleteFile(file._id, vnode.attrs.ondelete) },

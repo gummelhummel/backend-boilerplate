@@ -58,7 +58,7 @@ class Router {
       "/files/:id": FilePage,
       "/documents": CollectionsPage,
       "/images": ImagePage,
-      "/profile": Page,
+      "/profile": Page,      
       "/page/:id": MarkdownPage
     });
   }
