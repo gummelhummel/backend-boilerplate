@@ -9,9 +9,20 @@ npm install
 `
 npm start
 `
-
+<style>
+body{
+background-color:#f2f4f6
+}
+.lucil {
+border: 6px solid #fafa
+}
+</style>
+<form class="lucil" method="POST">
+<input type="text" id="name" name="name"/>
+<button type="submit" class="secondary" name="Senden">Senden</button>
+</form>
 # backend (nodemon)
 
 `
 npm start:dev
-`
+`.
