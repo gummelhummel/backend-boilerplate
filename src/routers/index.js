@@ -1,5 +1,10 @@
 const bodyParser = require("body-parser");
+const cache = require("express-redis-cache")({ expire: 60 });
+var httpProxy = require("http-proxy");
 const path = require("path");
+
+var proxy = httpProxy.createProxyServer({}); // See (†)
+
 
 module.exports = (express, services) => {
   const apiDataRouter = (() => {
@@ -41,6 +46,19 @@ module.exports = (express, services) => {
       app.use(bodyParser.json());
 
       app.use("/api/data", apiDataRouter);
+
+      app.use("/map/*", cache.route({}), (req, res) => {
+        console.log(req.path);
+        proxy.web(
+          req,
+          res,
+          {
+            target: "https://b.tile.openstreetmap.org",
+            secure:true
+          },
+          e => console.log(e)
+        );
+      });
 
       // assets for frontend
       app.get("/*", express.static("dist", { redirect: false }));
