@@ -33,8 +33,8 @@ const Map = vnode => {
 
       L.control.watermark({ position: "bottomleft" }).addTo(map);
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?{foo}", {      
-//      L.tileLayer("/map/{z}/{x}/{y}.png?{foo}", {
+      //L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?{foo}", {      
+      L.tileLayer("/map/{s}/{z}/{x}/{y}", {
         foo: "bar",
         attribution:
           'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'

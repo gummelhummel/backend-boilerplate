@@ -2,9 +2,9 @@ const bodyParser = require("body-parser");
 const cache = require("express-redis-cache")({ expire: 60 });
 var httpProxy = require("http-proxy");
 const path = require("path");
+const request = require("request");
 
-var proxy = httpProxy.createProxyServer({}); // See (†)
-
+var proxy = httpProxy.createProxyServer({expire:60}); // See (†)
 
 module.exports = (express, services) => {
   const apiDataRouter = (() => {
@@ -47,8 +47,24 @@ module.exports = (express, services) => {
 
       app.use("/api/data", apiDataRouter);
 
-      app.use("/map/*", cache.route({}), (req, res) => {
-        console.log(req.path);
+      //      https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
+      app.use(
+        "/map/:s/:z/:x/:y",
+        cache.route({}), (req, res) => {
+          let p = req.params;
+          let url = `https://${p.s}.tile.openstreetmap.org/${p.z}/${p.x}/${p.y}.png`;
+          console.log('so isses' + url);
+
+          const tile = request(url);
+          tile.pipe(res);
+          return;
+          request(url, {}, (err, response, body) => {
+            console.log(err, response.statusCode);
+            res.setHeader("Content-Type", "image/png");
+            res.status(response.statusCode).send(body);
+          });
+          /*
+
         proxy.web(
           req,
           res,
@@ -57,8 +73,9 @@ module.exports = (express, services) => {
             secure:true
           },
           e => console.log(e)
-        );
-      });
+        );*/
+        }
+      );
 
       // assets for frontend
       app.get("/*", express.static("dist", { redirect: false }));
