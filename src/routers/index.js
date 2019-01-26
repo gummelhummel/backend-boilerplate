@@ -3,6 +3,15 @@ const https = require("https");
 const mkdirp = require("mkdirp");
 const path = require("path");
 const fs = require("fs");
+const crypto = require("crypto");
+
+const express = require("express");
+
+var app = express();
+app.use("1", (req, res) => {
+  req.on("");
+  req.query;
+});
 
 module.exports = (express, services) => {
   const apiDataRouter = (() => {
@@ -45,20 +54,74 @@ module.exports = (express, services) => {
 
       app.use("/api/data", apiDataRouter);
 
+      app.use("/map/search/:search", (req, res) => {
+        let url = `https://nominatim.openstreetmap.org/search/${
+          req.params.search
+        }?format=json`;
+        mkdirp(`maps/`);
+        console.log(req.headers, req.agent);
+        let filename = crypto
+          .createHash("md5")
+          .update(req.params.search)
+          .digest("hex");
+        fs.exists(filename, exists =>
+          exists //
+            ? fs.createReadStream(filename).pipe(res) //
+            : https.request(
+                url,
+                {
+                  headers: {
+                    referer: "http://eismaenners.de",
+                    "User-Agent":
+                      "Mozilla/5.0 (X11; Linux x86_64; rv:64.0) Gecko/20100101 Firefox/64.0"
+                  }
+                },
+                response => {
+                  response.pipe(fs.createWriteStream(filename));
+                  response.pipe(res);
+                }
+              )
+        );
+      });
+
       app.use("/map/:s/:z/:x/:y", (req, res) => {
         let p = req.params;
-        const file = `maps/${p.z}/${p.x}/${p.y}.png`;
-        mkdirp(`maps/${p.z}/${p.x}/`);
+        let tileSets = [
+          {
+            name: 'wikimedia',
+            url: `https://maps.wikimedia.org/osm-intl/${p.z}/${p.x}/${p.y}.png`
+          },
+          {
+            name:'osm',
+            url: `https://${p.s}.tile.openstreetmap.org/${p.z}/${p.x}/${
+              p.y
+            }.png`
+          }
+        ];
+        let tileSet = tileSets[req.query.tileSet || 0];
+        const file = `maps/${tileSet.name}/${p.z}/${p.x}/${p.y}.png`;
+        mkdirp(`maps/${tileSet.name}/${p.z}/${p.x}/`);
         fs.exists(file, bool => {
-          if (bool) fs.createReadStream(file).pipe(res);
-          else
+          if (bool) {
+            fs.createReadStream(file).pipe(res);
+          } else {
+            req.on("end", () => console.log("end"));
+
+            req.on("error", () => console.log("error"));
             https.get(
-              `https://${p.s}.tile.openstreetmap.org/${p.z}/${p.x}/${p.y}.png`,
+              tileSet.url,
+              //              ,
               mapResponse => {
+                req.on("close", () => {
+                  if (!mapResponse.complete) {
+                    fs.unlink(file, err => console.log(err));
+                  }
+                });
                 mapResponse.pipe(fs.createWriteStream(file));
                 mapResponse.pipe(res);
               }
             );
+          }
         });
       });
 
