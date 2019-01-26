@@ -1,10 +1,8 @@
 const bodyParser = require("body-parser");
-const cache = require("express-redis-cache")({
-  host: "localhost",
-  port: "6379"
-});
 const https = require("https");
+const mkdirp = require("mkdirp");
 const path = require("path");
+const fs = require("fs");
 
 module.exports = (express, services) => {
   const apiDataRouter = (() => {
@@ -47,15 +45,21 @@ module.exports = (express, services) => {
 
       app.use("/api/data", apiDataRouter);
 
-      app.use("/map/:s/:z/:x/:y", cache.route(), (req, res) => {
+      app.use("/map/:s/:z/:x/:y", (req, res) => {
         let p = req.params;
-
-        https.get(
-          `https://${p.s}.tile.openstreetmap.org/${p.z}/${p.x}/${p.y}.png`,
-          mapResponse => {
-            mapResponse.pipe(res);
-          }
-        );
+        const file = `maps/${p.z}/${p.x}/${p.y}.png`;
+        mkdirp(`maps/${p.z}/${p.x}/`);
+        fs.exists(file, bool => {
+          if (bool) fs.createReadStream(file).pipe(res);
+          else
+            https.get(
+              `https://${p.s}.tile.openstreetmap.org/${p.z}/${p.x}/${p.y}.png`,
+              mapResponse => {
+                mapResponse.pipe(fs.createWriteStream(file));
+                mapResponse.pipe(res);
+              }
+            );
+        });
       });
 
       // assets for frontend

@@ -6,7 +6,7 @@ const { h1, div, input } = tagl(m);
 
 const Map = vnode => {
   return {
-    view: () => div.$map({ style: "height:100vh" }),
+    view: () => div.$map({ style: "height:100vh; width:100%" }),
     oncreate: () => {
       const map = L.map(vnode.dom).setView([51.505, -0.09], 13);
 
@@ -14,10 +14,10 @@ const Map = vnode => {
         onAdd: function(map) {
           var img = L.DomUtil.create("span");
 
-          img.innerHtml = "Hello World";
+          // img.innerHtml = "Hello World";
 
           //  img.src = '../../docs/images/logo.png';
-          img.style.width = "200px";
+          // img.style.width = "200px";
 
           return img;
         },
@@ -33,7 +33,7 @@ const Map = vnode => {
 
       L.control.watermark({ position: "bottomleft" }).addTo(map);
 
-      //L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?{foo}", {      
+      //L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?{foo}", {
       L.tileLayer("/map/{s}/{z}/{x}/{y}", {
         foo: "bar",
         attribution:
@@ -53,9 +53,7 @@ const geolocByAddress = (address, cb) =>
 if (true)
   m.mount(document.body, {
     view(vnode) {
-      return [
-          m(Map)
-      ];
+      return [m(Map)];
     }
   });
 /*
