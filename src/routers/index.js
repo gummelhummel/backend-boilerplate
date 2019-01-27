@@ -129,7 +129,7 @@ module.exports = (express, services) => {
 
       app.get("/fakesearch/:search", (req, res) => {
         let search = req.params.search;
-        let num =  Math.floor(Math.random() * 15);
+        let num =  Math.floor(Math.random() * fakeMarkers.length * 1.0);
         let responseData = [];
         for (let i = 0; i < num; i++) {
           let idx = Math.floor(Math.random() * fakeMarkers.length);

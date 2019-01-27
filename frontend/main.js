@@ -17,7 +17,15 @@ var crosshair = L.icon({
   popupAnchor: [-3, -76] // point from which the popup should open relative to the iconAnchor
 });
 
-var myIcon = L.divIcon({ className: "my-div-icon" });
+const range = (s, e) => {
+  let r = [];
+  for (let i = s; i < e; i++) r.push(i);
+  return r;
+};
+
+var myIcons = range(0, 9).map(n =>
+  L.divIcon({ className: `marker-type-${n}` })
+);
 
 const {
   h1,
@@ -56,18 +64,41 @@ setInterval(
 );
 
 const searches = [];
+let searchResults = {
+  fresh: false,
+  results: []
+};
 
 const Map = vnode => {
   let map = null;
   let marker = null;
+  let markers = [];
   return {
-    onupdate: () => {
-      if (map && !marker && location) {
-        marker = L.marker(location, { icon: myIcon }).addTo(map);
+    onupdate: vnode => {
+      if (map && !marker && vnode.attrs.location) {
+        marker = L.marker(vnode.attrs.location, { icon: crosshair }).addTo(map);
       } else if (marker) {
-        marker.setLatLng(location);
+        marker.setLatLng(vnode.attrs.location);
       }
-      map && map.setView(location);
+      vnode.attrs.follow &&
+        map &&
+        vnode.attrs.location &&
+        map.setView(vnode.attrs.location);
+      console.log("results: " + vnode.attrs.searchResults);
+      if (vnode.attrs.searchResults.fresh) {
+        markers.forEach(m => m.remove());
+        vnode.attrs.searchResults.results.forEach(result => {
+          markers.push(
+            L.marker(result.location, {
+              icon: myIcons[JSON.stringify(result).length % myIcons.length],
+              title: result.title
+            })
+              .bindPopup(result.comment)
+              .addTo(map)
+          );
+        });
+        vnode.attrs.searchResults.fresh = false;
+      }
     },
     view: () => {
       return div.$map({ style: "height:90vh; width:100%" });
@@ -80,8 +111,8 @@ const Map = vnode => {
 
           // img.innerHtml = "Hello World";
 
-          //  img.src = '../../docs/images/logo.png';
-          // img.style.width = "200px";
+          //   img.src = images.crosshair;
+          img.style.width = "200px";
 
           return img;
         },
@@ -120,32 +151,47 @@ let showAdd = false;
 let searchText = "";
 let addText = "";
 
+let follow = true;
+
 m.mount(document.body, {
   view(vnode) {
     return [
-      m(Map, { location }),
+      m(Map, { location, searchResults, follow }),
       footer.bottomNav([
         showSearch
-          ? form(
-              formfield(
-                input({
-                  value: addText,
-                  oninput: m.withAttr("value", v => (searchText = v))
-                }),
-                button.primary("🔍")
+          ? formfield(
+              input({
+                value: searchText,
+                oninput: m.withAttr("value", v => (searchText = v))
+              }),
+              button.primary(
+                {
+                  onclick: () => {
+                    showSearch = false;
+                    m.request({
+                      url: `/fakesearch/${searchText}`
+                    }).then(result => {
+                      searchResults.results = result;
+                      searchResults.fresh = true;
+                    });
+                  }
+                },
+                "🔍"
               )
             )
           : showAdd
-          ? 
-              formfield(
-                input({
-                  value: addText,
-                  oninput: m.withAttr("value", v => (addText = v))
-                }),
-                button.primary({ onclick: () => addPOI() }, "+")
-              )
-            
-          : [
+          ? formfield(
+              input({
+                value: addText,
+                oninput: m.withAttr("value", v => (addText = v))
+              }),
+              button.primary({ onclick: () => addPOI() }, "+")
+            )
+          : div.buttonGroup_([
+              button[follow ? "primary" : "success"](
+                { onclick: () => (follow = !follow) },
+                "👣"
+              ),
               button.primary(
                 {
                   onclick: () => {
@@ -162,7 +208,7 @@ m.mount(document.body, {
                 },
                 "+"
               )
-            ]
+            ])
       ])
     ];
   }
