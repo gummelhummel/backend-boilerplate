@@ -9,6 +9,7 @@ import FilesPage from "./pages/files";
 import FilePage from "./pages/file";
 import MarkdownPage from "./pages/markdown";
 import CollectionsPage from './pages/collections'
+import MapPage from './pages/map';
 
 const {
   form,
@@ -54,6 +55,7 @@ class Router {
     m.route(vnode.dom, "/", {
       "/": UserLogin,
       "/home": Page,
+      "/map": MapPage,
       "/files": FilesPage,
       "/files/:id": FilePage,
       "/documents": CollectionsPage,
@@ -83,7 +85,7 @@ m.mount(document.body, {
         a.button({ href: "/404" }, "404"),
         UserService.loggedIn()
           ? [
-              label.drawerToggle.persistent({ for: "drawer-control" }),
+              label.button.drawerToggle.persistent({ for: "drawer-control" }),
               input.drawer.persistent.$drawerControl({
                 type: "checkbox",
                 for: "drawer-control"
@@ -140,3 +142,5 @@ m.mount(document.body, {
     ];
   }
 });
+
+

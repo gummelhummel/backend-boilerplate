@@ -1,0 +1,48 @@
+@import 'leaflet/dist/leaflet.css';
+
+
+.my-div-icon {
+    background-color: black;
+    border-radius: 4px;
+}
+
+.bottom-nav- {
+    overflow: hidden;
+    height: 9vh;
+}
+
+.marker-type-0 {
+    background-color: green
+}
+
+.marker-type-1 {
+    background-color: red
+}
+
+.marker-type-2{
+    background-color: blueviolet
+}
+
+.marker-type-3 {
+    background-color: blue
+}
+
+.marker-type-4 {
+    background-color: greenyellow
+}
+
+.marker-type-5 {
+    background-color: purple
+}
+
+.marker-type-6 {
+    background-color: aqua
+}
+
+.marker-type-7 {
+    background-color: brown
+}
+
+.marker-type-8 {
+    background-color: indigo
+}

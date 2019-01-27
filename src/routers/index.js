@@ -1,4 +1,6 @@
 const bodyParser = require("body-parser");
+const https = require("https");
+const mkdirp = require("mkdirp");
 const path = require("path");
 const jwt = require("express-jwt");
 const multer = require("multer");
@@ -84,6 +86,8 @@ module.exports = (express, services, config) => {
       app.use("/api/users", userRouter);
       app.use("/api/data", apiDataRouter);
       app.use("/api/files", fileRouter);
+
+      require('./map')(app);
 
       // assets for frontend
       app.get("/*", express.static("dist", { redirect: false }));

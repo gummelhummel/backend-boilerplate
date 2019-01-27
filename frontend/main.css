@@ -1,4 +1,6 @@
 @import 'mini.css';
+@import './map.css';
+
 footer {
     background: #e65c00;
     /* fallback for old browsers */
