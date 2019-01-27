@@ -69,75 +69,6 @@ let searchResults = {
   results: []
 };
 
-const Map = vnode => {
-  let map = null;
-  let marker = null;
-  let markers = [];
-  return {
-    onupdate: vnode => {
-      if (map && !marker && vnode.attrs.location) {
-        marker = L.marker(vnode.attrs.location, { icon: crosshair }).addTo(map);
-      } else if (marker) {
-        marker.setLatLng(vnode.attrs.location);
-      }
-      vnode.attrs.follow &&
-        map &&
-        vnode.attrs.location &&
-        map.setView(vnode.attrs.location);
-      console.log("results: " + vnode.attrs.searchResults);
-      if (vnode.attrs.searchResults.fresh) {
-        markers.forEach(m => m.remove());
-        vnode.attrs.searchResults.results.forEach(result => {
-          markers.push(
-            L.marker(result.location, {
-              icon: myIcons[JSON.stringify(result).length % myIcons.length],
-              title: result.title
-            })
-              .bindPopup(result.comment)
-              .addTo(map)
-          );
-        });
-        vnode.attrs.searchResults.fresh = false;
-      }
-    },
-    view: () => {
-      return div.$map({ style: "height:80vh; width:100%" });
-    },
-    oncreate: () => {
-      map = L.map(vnode.dom).setView([50.505, 7.22], 13);
-      L.Control.Watermark = L.Control.extend({
-        onAdd: function(map) {
-          var img = L.DomUtil.create("img");
-
-          // img.innerHtml = "Hello World";
-
-          //   img.src = images.crosshair;
-          img.style.width = "200px";
-
-          return img;
-        },
-
-        onRemove: function(map) {
-          // Nothing to do here
-        }
-      });
-
-      L.control.watermark = function(opts) {
-        return new L.Control.Watermark(opts);
-      };
-
-      L.control.watermark({ position: "bottomleft" }).addTo(map);
-
-      // L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?{foo}", {
-      L.tileLayer("/map/{s}/{z}/{x}/{y}?{query}", {
-        query: `tileSet=1`,
-        attribution:
-          'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
-      }).addTo(map);
-    }
-  };
-};
-
 const geolocByAddress = (address, cb) =>
   m
     .request({
@@ -153,11 +84,10 @@ let addText = "";
 
 let follow = true;
 
-export default {
-  view(vnode) {
-    return [
-      m(Map, { location, searchResults, follow }),
-      footer.bottomNav([
+const Navigation = vnode => {
+  return {
+    view(vnode) {
+      return div.hoverTools([
         showSearch
           ? formfield(
               input({
@@ -209,7 +139,107 @@ export default {
                 "+"
               )
             ])
-      ])
+      ]);
+    }
+  };
+};
+
+const Map = vnode => {
+  let map = null;
+  let marker = null;
+  let markers = [];
+  return {
+    onupdate: vnode => {
+      if (map && !marker && vnode.attrs.location) {
+        marker = L.marker(vnode.attrs.location, { icon: crosshair }).addTo(map);
+      } else if (marker) {
+        marker.setLatLng(vnode.attrs.location);
+      }
+      vnode.attrs.follow &&
+        map &&
+        vnode.attrs.location &&
+        map.setView(vnode.attrs.location);
+      console.log("results: " + vnode.attrs.searchResults);
+      if (vnode.attrs.searchResults.fresh) {
+        markers.forEach(m => m.remove());
+        vnode.attrs.searchResults.results.forEach(result => {
+          markers.push(
+            L.marker(result.location, {
+              icon: myIcons[JSON.stringify(result).length % myIcons.length],
+              title: result.title
+            })
+              .bindPopup(result.comment)
+              .addTo(map)
+          );
+        });
+        vnode.attrs.searchResults.fresh = false;
+      }
+    },
+    view: () => {
+      return div.$map({ style: "height:92vh; width:100%" });
+    },
+    oncreate: () => {
+      map = L.map(vnode.dom).setView([50.505, 7.22], 13);
+      L.Control.Watermark = L.Control.extend({
+        onAdd: function(map) {
+          var overlay = L.DomUtil.create("div");
+
+          m.mount(overlay, {
+            view(vnode) {
+              return m(Navigation);
+            }
+          });
+
+          // img.innerHtml = "Hello World";
+
+          //   img.src = images.crosshair;
+          //img.style.width = "200px";
+
+          return overlay;
+        },
+
+        onRemove: function(map) {
+          // Nothing to do here
+        }
+      });
+
+      L.control.watermark = function(opts) {
+        return new L.Control.Watermark(opts);
+      };
+
+      L.control.watermark({ position: "bottomleft" }).addTo(map);
+
+      // L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?{foo}", {
+      const baseLayers = [
+        L.tileLayer("/map/{s}/{z}/{x}/{y}?{query}", {
+          query: `tileSet=0`,
+          attribution:
+            'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
+        }).addTo(map),
+        L.tileLayer("/map/{s}/{z}/{x}/{y}?{query}", {
+          query: `tileSet=1`,
+          attribution:
+            'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
+        }).addTo(map),
+        L.tileLayer("/map/{s}/{z}/{x}/{y}?{query}", {
+          query: `tileSet=2`,
+          attribution:
+            'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
+        }).addTo(map)
+      ];
+
+      L.control.layers(baseLayers).addTo(map);
+    }
+  };
+};
+
+export default {
+  view(vnode) {
+    return [
+      m(Map, { location, searchResults, follow })
+      // nav.toggle['col-md-4'](h1(
+      //   'hello'
+      // ))
     ];
   }
 };

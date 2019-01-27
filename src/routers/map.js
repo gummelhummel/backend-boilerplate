@@ -14,7 +14,7 @@ app.use("1", (req, res) => {
 });
 
 module.exports = app => {
-app.use("/map/search/:search", (req, res) => {
+  app.use("/map/search/:search", (req, res) => {
     let url = `https://nominatim.openstreetmap.org/search/${
       req.params.search
     }?format=json`;
@@ -56,6 +56,11 @@ app.use("/map/search/:search", (req, res) => {
         name: "osm",
         url: ({ x, y, z, s }) =>
           `https://${s}.tile.openstreetmap.org/${z}/${x}/${p.y}.png`
+      },
+      {
+        name: "topomap",
+        url: ({ x, y, z, s }) =>
+          `https://${s}.tile.opentopomap.org/${z}/${x}/${y}.png`
       }
     ];
     let tileSet = tileSets[req.query.tileSet || 0];
@@ -84,12 +89,12 @@ app.use("/map/search/:search", (req, res) => {
   fs.readFile("src/routers/markers.json", (err, data) => {
     if (err) console.log(err);
     else fakeMarkers = JSON.parse(data.toString());
-    console.log(fakeMarkers)
+    console.log(fakeMarkers);
   });
 
   app.get("/fakesearch/:search", (req, res) => {
     let search = req.params.search;
-    let num =  Math.floor(Math.random() * fakeMarkers.length * 1.0);
+    let num = Math.floor(Math.random() * fakeMarkers.length * 1.0);
     let responseData = [];
     for (let i = 0; i < num; i++) {
       let idx = Math.floor(Math.random() * fakeMarkers.length);
@@ -97,5 +102,4 @@ app.use("/map/search/:search", (req, res) => {
     }
     res.status(200).send(responseData);
   });
-
 };

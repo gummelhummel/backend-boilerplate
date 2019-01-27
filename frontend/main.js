@@ -52,10 +52,9 @@ class Page {
 
 class Router {
   oncreate(vnode) {
-    m.route(vnode.dom, "/", {
-      "/": UserLogin,
-      "/home": Page,
-      "/map": MapPage,
+    m.route(vnode.dom, "/home", {
+      "/login": UserLogin,
+      "/home": MapPage,
       "/files": FilesPage,
       "/files/:id": FilePage,
       "/documents": CollectionsPage,
@@ -137,7 +136,7 @@ m.mount(document.body, {
           : null
       ),
       m(Router),
-      footer(m(UserLogin))
+//      footer(m(UserLogin))
       //   pre(JSON.stringify(files, undefined, 2))
     ];
   }
