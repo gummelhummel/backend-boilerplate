@@ -2,6 +2,23 @@ import m from "mithril";
 import tagl from "tagl-mithril";
 import L from "leaflet";
 
+import images from "images/*.png";
+
+console.log(images.crosshair);
+
+var crosshair = L.icon({
+  iconUrl: images.crosshair,
+  //  shadowUrl: 'leaf-shadow.png',
+
+  iconSize: [64, 64], // size of the icon
+  //shadowSize:   [50, 64], // size of the shadow
+  iconAnchor: [32, 32], // point of the icon which will correspond to marker's location
+  //shadowAnchor: [4, 62],  // the same for the shadow
+  popupAnchor: [-3, -76] // point from which the popup should open relative to the iconAnchor
+});
+
+var myIcon = L.divIcon({ className: "my-div-icon" });
+
 const {
   h1,
   div,
@@ -9,6 +26,7 @@ const {
   nav,
   button,
   a,
+  b,
   input,
   form,
   formfield,
@@ -20,6 +38,7 @@ let location = null;
 
 setInterval(
   () =>
+    navigator.geolocation &&
     navigator.geolocation.getCurrentPosition(
       pos => {
         location = [pos.coords.latitude, pos.coords.longitude];
@@ -36,13 +55,15 @@ setInterval(
   2000
 );
 
+const searches = [];
+
 const Map = vnode => {
   let map = null;
   let marker = null;
   return {
     onupdate: () => {
       if (map && !marker && location) {
-        marker = L.marker(location).addTo(map);
+        marker = L.marker(location, { icon: myIcon }).addTo(map);
       } else if (marker) {
         marker.setLatLng(location);
       }
@@ -76,8 +97,8 @@ const Map = vnode => {
 
       L.control.watermark({ position: "bottomleft" }).addTo(map);
 
-     // L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?{foo}", {
-        L.tileLayer("/map/{s}/{z}/{x}/{y}?{query}", {
+      // L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?{foo}", {
+      L.tileLayer("/map/{s}/{z}/{x}/{y}?{query}", {
         query: `tileSet=1`,
         attribution:
           'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
@@ -94,25 +115,55 @@ const geolocByAddress = (address, cb) =>
     .then();
 
 let showSearch = false;
+let showAdd = false;
 
-if (true)
-  m.mount(document.body, {
-    view(vnode) {
-      return [
-        m(Map, { location }),
-        [
-          showSearch?input():null, 
-          header(
-            button.primary(
-              {
-                onclick: () => {
-                  showSearch = !showSearch;
-                }
-              },
-              "🔍"
+let searchText = "";
+let addText = "";
+
+m.mount(document.body, {
+  view(vnode) {
+    return [
+      m(Map, { location }),
+      footer.bottomNav([
+        showSearch
+          ? form(
+              formfield(
+                input({
+                  value: addText,
+                  oninput: m.withAttr("value", v => (searchText = v))
+                }),
+                button.primary("🔍")
+              )
             )
-          )
-        ]
-      ];
-    }
-  });
+          : showAdd
+          ? 
+              formfield(
+                input({
+                  value: addText,
+                  oninput: m.withAttr("value", v => (addText = v))
+                }),
+                button.primary({ onclick: () => addPOI() }, "+")
+              )
+            
+          : [
+              button.primary(
+                {
+                  onclick: () => {
+                    showSearch = !showSearch;
+                  }
+                },
+                "🔍"
+              ),
+              button.primary(
+                {
+                  onclick: () => {
+                    showAdd = !showAdd;
+                  }
+                },
+                "+"
+              )
+            ]
+      ])
+    ];
+  }
+});

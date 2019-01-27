@@ -88,14 +88,14 @@ module.exports = (express, services) => {
         let p = req.params;
         let tileSets = [
           {
-            name: 'wikimedia',
-            url: `https://maps.wikimedia.org/osm-intl/${p.z}/${p.x}/${p.y}.png`
+            name: "wikimedia",
+            url: ({ x, y, z, s }) =>
+              `https://maps.wikimedia.org/osm-intl/${z}/${x}/${y}.png`
           },
           {
-            name:'osm',
-            url: `https://${p.s}.tile.openstreetmap.org/${p.z}/${p.x}/${
-              p.y
-            }.png`
+            name: "osm",
+            url: ({ x, y, z, s }) =>
+              `https://${s}.tile.openstreetmap.org/${z}/${x}/${p.y}.png`
           }
         ];
         let tileSet = tileSets[req.query.tileSet || 0];
@@ -105,24 +105,37 @@ module.exports = (express, services) => {
           if (bool) {
             fs.createReadStream(file).pipe(res);
           } else {
-            req.on("end", () => console.log("end"));
-
-            req.on("error", () => console.log("error"));
-            https.get(
-              tileSet.url,
-              //              ,
-              mapResponse => {
-                req.on("close", () => {
-                  if (!mapResponse.complete) {
-                    fs.unlink(file, err => console.log(err));
-                  }
-                });
-                mapResponse.pipe(fs.createWriteStream(file));
-                mapResponse.pipe(res);
-              }
-            );
+            let url = tileSet.url(p);
+            console.log("Fetching " + url);
+            https.get(url, mapResponse => {
+              req.on("close", () => {
+                if (!mapResponse.complete) {
+                  fs.unlink(file, err => console.log(err));
+                }
+              });
+              mapResponse.pipe(fs.createWriteStream(file));
+              mapResponse.pipe(res);
+            });
           }
         });
+      });
+
+      let fakeMarkers = [];
+      fs.readFile("src/routers/markers.json", (err, data) => {
+        if (err) console.log(err);
+        else fakeMarkers = JSON.parse(data.toString());
+        console.log(fakeMarkers)
+      });
+
+      app.get("/fakesearch/:search", (req, res) => {
+        let search = req.params.search;
+        let num =  Math.floor(Math.random() * 15);
+        let responseData = [];
+        for (let i = 0; i < num; i++) {
+          let idx = Math.floor(Math.random() * fakeMarkers.length);
+          responseData.push(fakeMarkers[idx]);
+        }
+        res.status(200).send(responseData);
       });
 
       // assets for frontend
