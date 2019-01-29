@@ -24,7 +24,7 @@ const range = (s, e) => {
 };
 
 var myIcons = range(0, 9).map(n =>
-  L.divIcon({ className: `marker-type-${n}` })
+  L.divIcon({ className: `marker-type-${n} marker-base` })
 );
 
 const {

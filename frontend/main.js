@@ -82,6 +82,7 @@ m.mount(document.body, {
         ),
         pages.map(page=>a.button({ onclick: () => m.route.set(`/page/${page._id}`) }, page.originalname.replace('.md',''))),        
         a.button({ href: "/404" }, "404"),
+        a.button({ href: "/login" }, "Login"),
         UserService.loggedIn()
           ? [
               label.button.drawerToggle.persistent({ for: "drawer-control" }),

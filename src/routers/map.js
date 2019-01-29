@@ -88,7 +88,12 @@ module.exports = app => {
   let fakeMarkers = [];
   fs.readFile("src/routers/markers.json", (err, data) => {
     if (err) console.log(err);
-    else fakeMarkers = JSON.parse(data.toString());
+    else
+      fakeMarkers = JSON.parse(data.toString()).map(marker => {
+        marker.location.lat = (marker.location.lat % .5) + 50.759;
+        marker.location.lng = (marker.location.lng % .5) + 7.09845;
+        return marker;
+      });
     console.log(fakeMarkers);
   });
 
