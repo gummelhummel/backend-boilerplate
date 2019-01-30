@@ -65,10 +65,12 @@ module.exports = (
       let { _id } = obj;
       const collection = getCollection(collectionName);
       if (_id) {
+        console.log('overwriting')
         collections[collectionName] = collection.map(o =>
           o._id === _id ? obj : o
         );
       } else {
+        console.log('save new')
         _id = uuid.draw();
         collection.push({ ...obj, _id: _id });
       }

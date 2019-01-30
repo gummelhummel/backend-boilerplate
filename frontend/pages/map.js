@@ -2,6 +2,10 @@ import m from "mithril";
 import tagl from "tagl-mithril";
 import L from "leaflet";
 
+import MapService from "../services/map";
+import LogService from "../services/log";
+import DataService from "../services/data";
+
 import images from "../images/*.png";
 
 console.log(images.crosshair);
@@ -28,6 +32,7 @@ var myIcons = range(0, 9).map(n =>
 );
 
 const {
+  p,
   h1,
   div,
   footer,
@@ -64,10 +69,42 @@ setInterval(
 );
 
 const searches = [];
-let searchResults = {
-  fresh: false,
-  results: []
-};
+let searchResults = (() => {
+  let fresh = false;
+  let results = [];
+  return {
+    fresh: () => fresh,
+    results: () => {
+      fresh = false;
+      return results;
+    },
+    setResults: r => {
+      results = r;
+      fresh = true;
+    }
+  };
+})();
+
+DataService.search("_files", { location: { $ex: true } }, e =>
+  searchResults.setResults(
+    e.map(r => {
+      var link = document.createElement("a");
+      link.textContent = "download image";
+      link.href = `/api/files/${r._id}`;
+      link.text = r.originalname;
+      link.innerHTML = r.originalname;
+      /*link.addEventListener('click', function(ev) {
+          link.href = canvas.toDataURL();
+          link.download = "mypainting.png";
+      }, false);*/
+
+      console.log(r,link)
+      r.dom = link;
+      r.title = r.originalname;
+      return r // Object.assign(r, { title: r.originalname, dom: link });
+    })
+  )
+);
 
 const geolocByAddress = (address, cb) =>
   m
@@ -100,10 +137,7 @@ const Navigation = vnode => {
                     showSearch = false;
                     m.request({
                       url: `/fakesearch/${searchText}`
-                    }).then(result => {
-                      searchResults.results = result;
-                      searchResults.fresh = true;
-                    });
+                    }).then(searchResults.setResults);
                   }
                 },
                 "🔍"
@@ -144,6 +178,16 @@ const Navigation = vnode => {
   };
 };
 
+const Log = vnode => {
+  return {
+    view(vnode) {
+      return div.hoverTools(
+        LogService.list().map(entry => p[entry.type](entry.msg))
+      );
+    }
+  };
+};
+
 const Map = vnode => {
   let map = null;
   let marker = null;
@@ -159,20 +203,19 @@ const Map = vnode => {
         map &&
         vnode.attrs.location &&
         map.setView(vnode.attrs.location);
-      console.log("results: " + vnode.attrs.searchResults);
-      if (vnode.attrs.searchResults.fresh) {
+      console.log("results: ", vnode.attrs.searchResults);
+      if (vnode.attrs.searchResults.fresh()) {
         markers.forEach(m => m.remove());
-        vnode.attrs.searchResults.results.forEach(result => {
+        vnode.attrs.searchResults.results().forEach(result => {
           markers.push(
             L.marker(result.location, {
               icon: myIcons[JSON.stringify(result).length % myIcons.length],
               title: result.title
             })
-              .bindPopup(result.comment)
+              .bindPopup(result.dom || result.comment)
               .addTo(map)
           );
         });
-        vnode.attrs.searchResults.fresh = false;
       }
     },
     view: () => {
@@ -180,6 +223,8 @@ const Map = vnode => {
     },
     oncreate: () => {
       map = L.map(vnode.dom).setView([50.505, 7.22], 13);
+      MapService.registerMap(map);
+
       L.Control.Watermark = L.Control.extend({
         onAdd: function(map) {
           var overlay = L.DomUtil.create("div");
@@ -189,11 +234,6 @@ const Map = vnode => {
               return m(Navigation);
             }
           });
-
-          // img.innerHtml = "Hello World";
-
-          //   img.src = images.crosshair;
-          //img.style.width = "200px";
 
           return overlay;
         },
@@ -209,6 +249,30 @@ const Map = vnode => {
 
       L.control.watermark({ position: "bottomleft" }).addTo(map);
 
+      L.Control.Log = L.Control.extend({
+        onAdd: function(map) {
+          var overlay = L.DomUtil.create("div");
+
+          m.mount(overlay, {
+            view(vnode) {
+              return m(Log);
+            }
+          });
+
+          return overlay;
+        },
+
+        onRemove: function(map) {
+          // Nothing to do here
+        }
+      });
+
+      L.control.log = function(opts) {
+        return new L.Control.Log(opts);
+      };
+
+      L.control.log({ position: "bottomright" }).addTo(map);
+
       // L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png?{foo}", {
       const baseLayers = [
         L.tileLayer("/map/{s}/{z}/{x}/{y}?{query}", {
@@ -220,12 +284,12 @@ const Map = vnode => {
           query: `tileSet=1`,
           attribution:
             'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
-        }).addTo(map),
-        L.tileLayer("/map/{s}/{z}/{x}/{y}?{query}", {
+        }).addTo(map)
+        /*        L.tileLayer("/map/{s}/{z}/{x}/{y}?{query}", {
           query: `tileSet=2`,
           attribution:
             'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
-        }).addTo(map)
+        }).addTo(map)*/
       ];
 
       L.control.layers(baseLayers).addTo(map);

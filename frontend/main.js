@@ -1,6 +1,8 @@
 import m from "mithril";
 import tagl from "tagl-mithril";
 
+import MapService from "./services/map";
+import LogService from "./services/log";
 import UserService from "./services/user";
 import UserLogin from "./components/user-login";
 
@@ -8,8 +10,8 @@ import ImagePage from "./pages/images";
 import FilesPage from "./pages/files";
 import FilePage from "./pages/file";
 import MarkdownPage from "./pages/markdown";
-import CollectionsPage from './pages/collections'
-import MapPage from './pages/map';
+import CollectionsPage from "./pages/collections";
+import MapPage from "./pages/map";
 
 const {
   form,
@@ -28,7 +30,6 @@ const {
   pre,
   div
 } = tagl(m);
-
 
 let pages = [];
 
@@ -59,7 +60,7 @@ class Router {
       "/files/:id": FilePage,
       "/documents": CollectionsPage,
       "/images": ImagePage,
-      "/profile": Page,      
+      "/profile": Page,
       "/page/:id": MarkdownPage
     });
   }
@@ -67,6 +68,25 @@ class Router {
     return div.$router();
   }
 }
+
+const Drawer = () => {
+  let open = false;
+  let show = () => (open = true);
+  let hide = () => (open = false);
+
+  MapService.addRevealer(hide);
+  return {
+    view(vnode) {
+      return [
+        a.button({ onclick: () => (open = !open) }, "open"),
+        nav.mDrawer[open ? "opened" : ""]([
+          [a.button.mDrawerClose({ onclick: hide },'×'),h1('Files')],
+          ...vnode.children
+        ])
+      ];
+    }
+  };
+};
 
 m.mount(document.body, {
   view(vnode) {
@@ -80,17 +100,25 @@ m.mount(document.body, {
           },
           "☃ ContEase"
         ),
-        pages.map(page=>a.button({ onclick: () => m.route.set(`/page/${page._id}`) }, page.originalname.replace('.md',''))),        
+        a.button.logo({ onclick: () => LogService.info("hello") }, "s"),
+        pages.map(page =>
+          a.button(
+            { onclick: () => m.route.set(`/page/${page._id}`) },
+            page.originalname.replace(".md", "")
+          )
+        ),
         a.button({ href: "/404" }, "404"),
-        a.button({ href: "/login" }, "Login"),
+        a.button({ href: "#!/login" }, "Login"),
         UserService.loggedIn()
           ? [
+              m(Drawer, m(FilesPage)),
               label.button.drawerToggle.persistent({ for: "drawer-control" }),
               input.drawer.persistent.$drawerControl({
                 type: "checkbox",
                 for: "drawer-control"
               }),
-              nav["col-md-4"](
+              nav.w30["col-md-6"](
+                {},
                 label.drawerClose({ for: "drawer-control" }),
                 a(
                   {
@@ -131,16 +159,15 @@ m.mount(document.body, {
                     }
                   },
                   "My Profile"
-                )
+                ),
+                m(FilesPage)
               )
             ]
           : null
       ),
-      m(Router),
-//      footer(m(UserLogin))
+      m(Router)
+      //      footer(m(UserLogin))
       //   pre(JSON.stringify(files, undefined, 2))
     ];
   }
 });
-
-

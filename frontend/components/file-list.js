@@ -3,6 +3,9 @@ import tagl from "tagl-mithril";
 import Size from "./disk-size";
 import Abbr from "./abbr";
 import UserService from "../services/user";
+import LogService from "../services/log";
+import MapService from "../services/map";
+import DataService from "../services/data";
 
 const {
   video,
@@ -61,9 +64,10 @@ const deleteFile = (id, cb) => {
   };
 };
 
+const urlOf = file => `/api/files/${file._id}`;
+
 export default {
   view(vnode) {
-    console.log(vnode.attrs.files);
     return [
       h2("Files"),
       div.row(
@@ -77,8 +81,8 @@ export default {
             ),
             UserService.loggedIn()
               ? div.section(
-         //         a.button("⚓"),
-           //       a.button("♥"),
+                  //         a.button("⚓"),
+                  //       a.button("♥"),
                   //  a.button("⚐⚑"),
                   whenMarkdown(
                     file.mimetype,
@@ -91,15 +95,26 @@ export default {
                     { onclick: deleteFile(file._id, vnode.attrs.ondelete) },
                     "🗑️"
                   ),
-                  a.button({ href: `/api/files/${file._id}` }, "⬇💾")
+                  a.button({ href: urlOf(file) }, "⬇💾"),
+                  a.button({ onclick: () => {
+                    MapService.reveal();
+                    LogService.info('Please select a point on the map by clicking');
+                    const onclick = function(e) {
+                      console.log('onclick',e);
+                      MapService.unregisterClick(onclick);
+                      file.location = e.latlng;
+                      DataService.save("_files",file._id, file);
+                    };                    
+                    MapService.registerClick(onclick);
+                  } },'⚑')
                 )
               : null,
-            //            div.section(pre(JSON.stringify(file, undefined, 2))),
+                        div.section(pre(JSON.stringify(file, undefined, 2))),
             div.section(mark(file.mimetype)),
             whenImage(file.mimetype, [
               img.section.media({
                 width: "100%",
-                src: `/api/files/${file._id}`
+                src: urlOf(file)
               }),
               label({ for: `modal-control-${idx}` }, "Show"),
               input.modal[`#modal-control-${idx}`]({ type: "checkbox" }),
@@ -109,7 +124,7 @@ export default {
                   h3.section(file.originalname),
                   img.media({
                     width: "100%",
-                    src: `/api/files/${file._id}`
+                    src: urlOf(file)
                   })
                 )
               )
@@ -120,7 +135,7 @@ export default {
                   width: "100%",
                   controls: true
                 },
-                source({ src: `/api/files/${file._id}` })
+                source({ src: urlOf(file) })
               )
             ]),
             whenAudio(file.mimetype, [
@@ -130,7 +145,7 @@ export default {
                   controls: true
                 },
                 source({
-                  src: `/api/files/${file._id}`,
+                  src: urlOf(file),
                   type: `${file.mimetype}`
                 }),
                 " Your browser does not support the audio element."

@@ -1,5 +1,8 @@
 @import 'leaflet/dist/leaflet.css';
 
+.w30 {
+    width:30%
+}
 
 .my-div-icon {
     background-color: black;

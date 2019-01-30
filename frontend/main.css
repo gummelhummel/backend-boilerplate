@@ -29,3 +29,35 @@ footer {
 .half-height {
     height: 50vh
 }
+
+.m-drawer {
+    display: block;
+    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    width: 520px;
+    height: 100vh;
+    overflow-y: auto;
+    background: var(--drawer-back-color);
+    border: .0625rem solid var(--drawer-border-color);
+    border-radius: 0;
+    margin: 0;
+    z-index: 1110;
+    right: -520px;
+    transition: right 0.3s;    
+    max-width: 100%;
+}
+
+.m-drawer.opened {
+    right: 0;
+}
+
+.m-drawer-close::content {
+    content: '×';
+    display: inline-block;
+/*    position:fixed;
+    top:0;
+    right:0;
+    */
+}
+

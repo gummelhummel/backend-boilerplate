@@ -57,11 +57,11 @@ module.exports = app => {
         url: ({ x, y, z, s }) =>
           `https://${s}.tile.openstreetmap.org/${z}/${x}/${p.y}.png`
       },
-      {
+/*      {
         name: "topomap",
         url: ({ x, y, z, s }) =>
           `https://${s}.tile.opentopomap.org/${z}/${x}/${y}.png`
-      }
+      }*/
     ];
     let tileSet = tileSets[req.query.tileSet || 0];
     const file = `maps/${tileSet.name}/${p.z}/${p.x}/${p.y}.png`;
