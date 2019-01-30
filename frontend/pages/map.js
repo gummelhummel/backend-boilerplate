@@ -13,7 +13,6 @@ console.log(images.crosshair);
 var crosshair = L.icon({
   iconUrl: images.crosshair,
   //  shadowUrl: 'leaf-shadow.png',
-
   iconSize: [64, 64], // size of the icon
   //shadowSize:   [50, 64], // size of the shadow
   iconAnchor: [32, 32], // point of the icon which will correspond to marker's location
@@ -136,7 +135,7 @@ const Navigation = vnode => {
                   onclick: () => {
                     showSearch = false;
                     m.request({
-                      url: `/fakesearch/${searchText}`
+                      url: `/map/fakesearch/${searchText}`
                     }).then(searchResults.setResults);
                   }
                 },

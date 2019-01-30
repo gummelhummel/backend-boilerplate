@@ -94,10 +94,9 @@ module.exports = app => {
         marker.location.lng = (marker.location.lng % .5) + 7.09845;
         return marker;
       });
-    console.log(fakeMarkers);
   });
 
-  app.get("/fakesearch/:search", (req, res) => {
+  app.get("/map/fakesearch/:search", (req, res) => {
     let search = req.params.search;
     let num = Math.floor(Math.random() * fakeMarkers.length * 1.0);
     let responseData = [];
